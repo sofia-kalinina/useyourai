@@ -1,6 +1,6 @@
 variable "account_id" {
   description = "AWS account ID"
-  type        = string 
+  type        = string  
 }
 
 variable "environment" {
@@ -10,5 +10,5 @@ variable "environment" {
 
 variable "region" {
   description = "AWS region"
-  type        = string  
+  type        = string
 }
