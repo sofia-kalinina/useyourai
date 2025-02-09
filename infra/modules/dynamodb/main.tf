@@ -15,19 +15,13 @@ resource "aws_dynamodb_table" "language_learning" {
     type = "S"
   }
 
-  attribute {
-    name = "ttl"
-    type = "S"
-  }
-
   ttl {
     attribute_name = "ttl"
     enabled        = true
   }
 
-  global_secondary_index {
-    name            = "TTLIndex"
-    hash_key        = "ttl"
-    projection_type = "ALL"
+  tags = {
+    Name        = "LanguageLearningTable-${var.environment}"
+    Environment = "${var.environment}"
   }
 }
