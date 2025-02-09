@@ -1,6 +1,7 @@
 data "archive_file" "init_session_lambda" {
   type        = "zip"
-  source_file = "init_session.py"
+  source_file = "../../lambdas/init_session.py"
+
   output_path = "init_session.zip"
 }
 
