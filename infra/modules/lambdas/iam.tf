@@ -1,3 +1,7 @@
+data "aws_kms_alias" "lambda" {
+  name = "alias/aws/lambda"
+}
+
 resource "aws_iam_role" "lambda_exec_role" {
   name = "LambdaExecutionRole"
 
@@ -37,3 +41,23 @@ resource "aws_iam_role_policy" "dynamodb_rw_access_policy" {
   })
 }
 
+
+# Using the aws managed key to save costs
+resource "aws_iam_role_policy" "lambda_kms_key_access_policy" {
+  name = "LambdaKMSKeyAccess"
+  role = aws_iam_role.lambda_exec_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "kms:Decrypt",
+          "kms:DescribeKey"
+        ]
+        Effect   = "Allow"
+        Resource = data.aws_kms_alias.lambda.target_key_arn
+      }
+    ]
+  })
+}
