@@ -52,7 +52,8 @@ resource "aws_iam_role_policy" "lambda_kms_key_access_policy" {
     Statement = [
       {
         Action = [
-          "kms:*",
+          "kms:Decrypt",
+          "kms:DescribeKey"
         ]
         Effect   = "Allow"
         Resource = data.aws_kms_alias.lambda.target_key_arn
