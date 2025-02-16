@@ -21,3 +21,21 @@ resource "aws_lambda_function" "init_session_lambda" {
     }
   }
 }
+
+data "archive_file" "test_bedrock_lambda" {
+  type        = "zip"
+  source_file = "../../lambdas/test_bedrock.py"
+
+  output_path = "test_bedrock.zip"
+}
+
+resource "aws_lambda_function" "test_bedrock_lambda" {
+  filename      = "test_bedrock.zip"
+  function_name = "test_bedrock"
+  role          = aws_iam_role.lambda_exec_role.arn
+  handler       = "test_bedrock.lambda_handler"
+
+  source_code_hash = data.archive_file.test_bedrock_lambda.output_base64sha256
+
+  runtime = "python3.11"
+}

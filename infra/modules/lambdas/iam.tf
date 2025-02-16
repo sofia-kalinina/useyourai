@@ -61,3 +61,23 @@ resource "aws_iam_role_policy" "lambda_kms_key_access_policy" {
     ]
   })
 }
+
+resource "aws_iam_role_policy" "bedrock_invoke_models_policy" {
+  name = "BedrockInvokeModelsAccess"
+  role = aws_iam_role.lambda_exec_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "bedrock:InvokeModel",
+          "bedrock:ListFoundationModels"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+        //Resource = "arn:aws:bedrock:${var.region}::foundation-model/amazon.titan-embed-text-v2:0"
+      }
+    ]
+  }) 
+}
