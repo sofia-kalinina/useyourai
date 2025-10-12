@@ -3,7 +3,7 @@ resource "aws_apigatewayv2_api" "useyourai_api" {
   protocol_type = "HTTP"
 }
 
-resource "aws_apigatewayv2_stage" "default" {
+resource "aws_apigatewayv2_stage" "useyourai_api_stage" {
   api_id      = aws_apigatewayv2_api.useyourai_api.id
   name        = var.environment
   auto_deploy = true
@@ -22,4 +22,14 @@ resource "aws_apigatewayv2_route" "useyourai_lambdas_route" {
   api_id    = aws_apigatewayv2_api.useyourai_api.id
   route_key = each.value.route_key
   target    = "integrations/${aws_apigatewayv2_integration.useyourai_lambdas_integration[each.value.name].id}"
+}
+
+# Permission for API Gateway to invoke Lambdas
+resource "aws_lambda_permission" "apigw" {
+  for_each      = { for lambda in var.lambdas : lambda.name => lambda }
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = each.key
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.useyourai_api.execution_arn}/*/*"
 }
