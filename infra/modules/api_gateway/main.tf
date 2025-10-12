@@ -5,7 +5,7 @@ resource "aws_apigatewayv2_api" "useyourai_api" {
 
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.useyourai_api.id
-  name        = "$default"
+  name        = var.environment
   auto_deploy = true
 }
 
