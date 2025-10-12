@@ -1,6 +1,8 @@
 import boto3
 import json
 
+from botocore.exceptions import ClientError
+
 def lambda_handler(event, context):
     # Get the human prompt from the event
     human_prompt = event.get('prompt')
@@ -11,31 +13,38 @@ def lambda_handler(event, context):
         }
 
     # Initialize Bedrock runtime client
-    bedrock_runtime = boto3.client('bedrock-runtime', region_name='eu-central-1')
+    client = boto3.client('bedrock-runtime', region_name='eu-central-1')
 
-    # Prepare the payload for Bedrock
-    payload = { 
-        "prompt": f"\n\nHuman: {human_prompt}\n\nAssistant:",
-        "max_tokens_to_sample": 300,
+    model_id = "meta.llama3-2-1b-instruct-v1:0"
+
+    formatted_prompt = f"""
+    <|begin_of_text|><|start_header_id|>user<|end_header_id|>
+    {human_prompt}
+    <|eot_id|>
+    <|start_header_id|>assistant<|end_header_id|>
+    """
+
+    native_request = {
+        "prompt": formatted_prompt,
+        "max_gen_len": 512,
         "temperature": 0.5,
-        "top_k": 250,
-        "top_p": 1,
-        "stop_sequences": ["\n\nHuman:"],
-        "anthropic_version": "bedrock-2023-05-31"
     }
 
-    # Invoke the Bedrock model
-    response = bedrock_runtime.invoke_model(
-        modelId="anthropic.claude-v2",
-        contentType="application/json",
-        accept="application/json",
-        body=json.dumps(payload)
-    )
+    # Convert the native request to JSON.
+    request = json.dumps(native_request)
 
-    # Parse the response from Bedrock
-    response_body = json.loads(response['body'].read().decode('utf-8'))
+    try:
+        # Invoke the model with the request.
+        response = client.invoke_model(modelId=model_id, body=request)
+
+    except (ClientError, Exception) as e:
+        print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
+        exit(1)
+
+    model_response = json.loads(response["body"].read())
+    response_text = model_response["generation"]
     
     return {
         "statusCode": 200,
-        "body": json.dumps(response_body)
+        "body": json.dumps(response_text)
     }
