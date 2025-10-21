@@ -86,3 +86,24 @@ resource "aws_iam_role_policy" "bedrock_invoke_models_policy" {
     ]
   })
 }
+
+# TODO: narrow the resource down
+resource "aws_iam_role_policy" "aws_marketplace_view_subscriptions_policy" {
+  name = "AWSMarketplaceViewSubscriptionsAccess"
+  role = aws_iam_role.lambda_exec_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "aws-marketplace:ViewSubscriptions",
+          "aws-marketplace:Subscribe",
+          "aws-marketplace:Unsubscribe"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
+      }
+    ]
+  })
+}
