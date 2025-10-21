@@ -34,6 +34,7 @@ resource "aws_lambda_function" "test_bedrock_lambda" {
   function_name = "test_bedrock"
   role          = aws_iam_role.lambda_exec_role.arn
   handler       = "test_bedrock.lambda_handler"
+  timeout       = 30
 
   source_code_hash = data.archive_file.test_bedrock_lambda.output_base64sha256
 
