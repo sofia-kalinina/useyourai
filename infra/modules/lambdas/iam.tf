@@ -67,6 +67,7 @@ resource "aws_iam_role_policy" "lambda_kms_key_access_policy" {
   })
 }
 
+# TODO: narrow the permissions down to the models needed for the app logic
 resource "aws_iam_role_policy" "bedrock_invoke_models_policy" {
   name = "BedrockInvokeModelsAccess"
   role = aws_iam_role.lambda_exec_role.id
@@ -77,11 +78,10 @@ resource "aws_iam_role_policy" "bedrock_invoke_models_policy" {
       {
         Action = [
           "bedrock:InvokeModel",
-          "bedrock:ListFoundationModels"
+          "bedrock:InvokeModelWithResponseStream",
         ]
         Effect   = "Allow"
         Resource = "*"
-        //Resource = "arn:aws:bedrock:${var.region}::foundation-model/amazon.titan-embed-text-v2:0"
       }
     ]
   })
