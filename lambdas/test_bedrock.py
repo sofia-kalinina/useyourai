@@ -3,48 +3,49 @@ import json
 
 from botocore.exceptions import ClientError
 
+bedrock = boto3.client(service_name='bedrock-runtime', region_name='eu-central-1')
+
+MODEL_ID = "anthropic.claude-sonnet-4-5-20250929-v1:0"
+INFERENCE_PROFILE_ID = "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+
+
 def lambda_handler(event, context):
+    """
+    Example AWS Lambda function to invoke Claude Sonnet 4.5 through Bedrock.
+    'event' is expected to contain a 'prompt' key.
+    """
+
     # Get the human prompt from the event
-    human_prompt = event.get('prompt')
-    if not human_prompt:
+    user_prompt = event.get('prompt')
+    if not user_prompt:
         return {
             "statusCode": 400,
             "body": json.dumps({"message": "Prompt is required"})
         }
 
-    # Initialize Bedrock runtime client
-    client = boto3.client('bedrock-runtime', region_name='eu-central-1')
-
-    model_id = "meta.llama3-2-1b-instruct-v1:0"
-
-    formatted_prompt = f"""
-    <|begin_of_text|><|start_header_id|>user<|end_header_id|>
-    {human_prompt}
-    <|eot_id|>
-    <|start_header_id|>assistant<|end_header_id|>
-    """
-
-    native_request = {
-        "prompt": formatted_prompt,
-        "max_gen_len": 512,
-        "temperature": 0.5,
+    # Build the message structure for Anthropic Claude model
+    body = {
+        "messages": [
+            {"role": "user", "content": [{"type": "text", "text": user_prompt}]}
+        ],
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 512,
+        "temperature": 0.7
     }
 
-    # Convert the native request to JSON.
-    request = json.dumps(native_request)
+    # Invoke the model
+    response = bedrock.invoke_model(
+        modelId=INFERENCE_PROFILE_ID,
+        accept="application/json",
+        contentType="application/json",
+        body=json.dumps(body)
+    )
 
-    try:
-        # Invoke the model with the request.
-        response = client.invoke_model(modelId=model_id, body=request)
+    # Parse the model output
+    model_output = json.loads(response["body"].read())
+    reply = model_output["content"][0]["text"]
 
-    except (ClientError, Exception) as e:
-        print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
-        exit(1)
-
-    model_response = json.loads(response["body"].read())
-    response_text = model_response["generation"]
-    
     return {
         "statusCode": 200,
-        "body": json.dumps(response_text)
+        "body": json.dumps({"reply": reply})
     }
