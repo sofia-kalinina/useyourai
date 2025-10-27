@@ -15,12 +15,28 @@ def lambda_handler(event, context):
     'event' is expected to contain a 'prompt' key.
     """
 
-    # Get the human prompt from the event
-    user_prompt = event.get('prompt')
-    if not user_prompt:
+    # Validate and extract the prompt from the event body
+    user_prompt = None
+    body_string = event.get('body')
+
+    if body_string:
+        try:
+            body = json.loads(body_string)
+            user_prompt = body.get('prompt')
+            if not user_prompt:
+                return {
+                    "statusCode": 400,
+                    "body": json.dumps({"message": "Prompt is required"})
+                }
+        except:
+            return {
+                "statusCode": 400,
+                "body": json.dumps({"message": "Invalid JSON in request body"})
+            }
+    else:
         return {
             "statusCode": 400,
-            "body": json.dumps({"message": "Prompt is required"})
+            "body": json.dumps({"message": "Request body is required"})
         }
 
     # Build the message structure for Anthropic Claude model
