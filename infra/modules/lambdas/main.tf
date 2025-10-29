@@ -1,6 +1,6 @@
 data "archive_file" "init_session_lambda" {
   type        = "zip"
-  source_file = "../../lambdas/init_session.py"
+  source_file = "../../../lambdas/init_session.py"
 
   output_path = "init_session.zip"
 }
@@ -24,7 +24,7 @@ resource "aws_lambda_function" "init_session_lambda" {
 
 data "archive_file" "test_bedrock_lambda" {
   type        = "zip"
-  source_file = "../../lambdas/test_bedrock.py"
+  source_file = "../../../lambdas/test_bedrock.py"
 
   output_path = "test_bedrock.zip"
 }

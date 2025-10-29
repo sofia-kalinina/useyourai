@@ -1,11 +1,11 @@
 module "dynamodb" {
-  source = "../modules/dynamodb"
+  source = "../../modules/dynamodb"
 
   environment = var.environment
 }
 
 module "lambdas" {
-  source = "../modules/lambdas"
+  source = "../../modules/lambdas"
 
   account_id  = var.account_id
   environment = var.environment
@@ -13,7 +13,7 @@ module "lambdas" {
 }
 
 module "api_gateway" {
-  source = "../modules/api_gateway"
+  source = "../../modules/api_gateway"
 
   environment = var.environment
   lambdas = [
