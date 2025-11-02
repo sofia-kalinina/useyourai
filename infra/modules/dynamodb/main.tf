@@ -25,3 +25,9 @@ resource "aws_dynamodb_table" "language_learning" {
     Environment = "${var.environment}"
   }
 }
+
+resource "null_resource" "just_a_resource_to_wait_for_trigger" {
+  triggers = {
+    timestamp = timestamp()
+  }
+}
