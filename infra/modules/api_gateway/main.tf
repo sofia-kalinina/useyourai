@@ -1,7 +1,15 @@
+
 resource "aws_apigatewayv2_api" "useyourai_api" {
   name          = "LanguageLearningAPI-${var.environment}"
   protocol_type = "HTTP"
+
+  cors_configuration {
+    allow_origins = ["http://localhost:3000"]
+    allow_methods = ["POST", "OPTIONS"]
+    allow_headers = ["Content-Type"]
+  }
 }
+
 
 resource "aws_apigatewayv2_stage" "useyourai_api_stage" {
   api_id      = aws_apigatewayv2_api.useyourai_api.id
