@@ -1,0 +1,18 @@
+
+.message {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.message.user {
+  background-color: #dcf8c6;
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.message.system {
+  background-color: #f0f0f0;
+  align-self: flex-start;
+}
