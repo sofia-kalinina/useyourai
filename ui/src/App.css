@@ -5,11 +5,22 @@
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  padding: 10px; /* Reduced padding */
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  justify-content: flex-start;
+  font-size: calc(5px + 1vmin); /* Reduced font size */
   color: white;
 }
+
+.App-header h1 {
+  margin-left: 10px; /* Space between logo and title */
+  margin-right: 5px; /* Reduced space between title and logo */
+}
+
+.App-logo {
+  height: 50px; /* Reduced size */
+  width: 50px; /* Reduced size */
+}
+
