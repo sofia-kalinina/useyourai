@@ -1,7 +1,10 @@
 
 resource "aws_apigatewayv2_api" "useyourai_api" {
-  name          = "LanguageLearningAPI-${var.environment}"
+  name          = "${var.project_name}-${var.environment}-api"
   protocol_type = "HTTP"
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-${var.environment}-api"
+  })
 
   cors_configuration {
     allow_origins = ["http://localhost:3000"]
@@ -15,6 +18,9 @@ resource "aws_apigatewayv2_stage" "useyourai_api_stage" {
   api_id      = aws_apigatewayv2_api.useyourai_api.id
   name        = var.environment
   auto_deploy = true
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-${var.environment}-api-stage"
+  })
 }
 
 resource "aws_apigatewayv2_integration" "useyourai_lambdas_integration" {

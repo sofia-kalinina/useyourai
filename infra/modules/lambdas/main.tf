@@ -7,7 +7,7 @@ data "archive_file" "init_session_lambda" {
 
 resource "aws_lambda_function" "init_session_lambda" {
   filename      = "init_session.zip"
-  function_name = "init_session"
+  function_name = "${var.project_name}-${var.environment}-lambda-init-session"
   role          = aws_iam_role.lambda_exec_role.arn
   handler       = "init_session.lambda_handler"
 
@@ -20,6 +20,9 @@ resource "aws_lambda_function" "init_session_lambda" {
       ENVIRONMENT = var.environment
     }
   }
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-${var.environment}-lambda-init-session"
+  })
 }
 
 data "archive_file" "test_bedrock_lambda" {
@@ -31,7 +34,7 @@ data "archive_file" "test_bedrock_lambda" {
 
 resource "aws_lambda_function" "test_bedrock_lambda" {
   filename      = "test_bedrock.zip"
-  function_name = "test_bedrock"
+  function_name = "${var.project_name}-${var.environment}-lambda-test-bedrock"
   role          = aws_iam_role.lambda_exec_role.arn
   handler       = "test_bedrock.lambda_handler"
   timeout       = 30
@@ -39,4 +42,7 @@ resource "aws_lambda_function" "test_bedrock_lambda" {
   source_code_hash = data.archive_file.test_bedrock_lambda.output_base64sha256
 
   runtime = "python3.11"
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-${var.environment}-lambda-test-bedrock"
+  })
 }
