@@ -24,7 +24,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "ui_bucket_encrypt
 }
 
 resource "aws_cloudfront_origin_access_control" "useyourai_ui_oac" {
-  name                              = "useyouai-${var.environment}-oac"
+  name                              = "useyourai-${var.environment}-oac"
   description                       = "OAC for useyourai ui ${var.environment}"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
@@ -115,7 +115,7 @@ data "aws_iam_policy_document" "s3_policy" {
     condition {
       test     = "StringEquals"
       variable = "AWS:SourceArn"
-      values   = [aws_cloudfront_distribution.cdn.arn]
+      values   = [aws_cloudfront_distribution.useyourai_ui_cdn.arn]
     }
   }
 }

@@ -29,3 +29,9 @@ module "api_gateway" {
     }
   ]
 }
+
+module "ui" {
+  source = "../../modules/ui"
+
+  environment = var.environment
+}

@@ -6,4 +6,10 @@ terraform {
       name = "useyourai-${var.environment}"
     }
   }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 6.20"
+    }
+  }
 }
