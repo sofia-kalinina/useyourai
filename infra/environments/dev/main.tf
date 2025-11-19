@@ -49,7 +49,8 @@ module "api_gateway" {
 module "ui" {
   source = "../../modules/ui"
 
-  environment  = var.environment
-  project_name = var.project_name
-  common_tags  = local.common_tags
+  environment               = var.environment
+  project_name              = var.project_name
+  managed_by_github_actions = true
+  common_tags               = local.common_tags
 }

@@ -12,3 +12,9 @@ variable "environment" {
   description = "Environment name"
   type        = string
 }
+
+variable "managed_by_github_actions" {
+  description = "If true, GitHub actions will have permissions to change the resources"
+  type        = bool
+  default     = false
+}
