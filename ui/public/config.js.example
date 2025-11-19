@@ -1,0 +1,4 @@
+// Copy this file to config.js and update with your API URL
+window.ENV = {
+  API_URL: 'YOUR_API_GATEWAY_URL_HERE'
+};
