@@ -2,5 +2,9 @@
 /node_modules
 /ui/node_modules
 
+# Build artifacts
+/ui/build
+
 # Other
 .DS_Store
+

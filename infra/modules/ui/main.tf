@@ -4,13 +4,11 @@ resource "random_id" "bucket_suffix" {
 }
 
 resource "aws_s3_bucket" "ui_bucket" {
-  bucket = "useyourai-ui-${var.environment}-${random_id.bucket_suffix.hex}"
+  bucket = "${var.project_name}-${var.environment}-ui-bucket-${random_id.bucket_suffix.hex}"
 
-  tags = {
-    Name        = "useyourai-ui-${var.environment}-bucket"
-    Environment = "${var.environment}"
-
-  }
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-${var.environment}-ui-bucket"
+  })
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "ui_bucket_encryption" {
@@ -24,8 +22,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "ui_bucket_encrypt
 }
 
 resource "aws_cloudfront_origin_access_control" "useyourai_ui_oac" {
-  name                              = "useyourai-${var.environment}-oac"
-  description                       = "OAC for useyourai ui ${var.environment}"
+  name                              = "${var.project_name}-${var.environment}-ui-oac"
+  description                       = "OAC for ${var.project_name} ui ${var.environment}"
   origin_access_control_origin_type = "s3"
   signing_behavior                  = "always"
   signing_protocol                  = "sigv4"
@@ -34,11 +32,13 @@ resource "aws_cloudfront_origin_access_control" "useyourai_ui_oac" {
 resource "aws_cloudfront_distribution" "useyourai_ui_cdn" {
   enabled             = true
   is_ipv6_enabled     = true
-  comment             = "CDN for useyourai ui ${var.environment}"
+  comment             = "CDN for ${var.project_name} ui ${var.environment}"
   default_root_object = "index.html"
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-${var.environment}-ui-cdn"
+  })
 
   # We do NOT use 'aliases' since we don't have a custom domain yet
-
   origin {
     domain_name              = aws_s3_bucket.ui_bucket.bucket_regional_domain_name
     origin_id                = aws_s3_bucket.ui_bucket.id

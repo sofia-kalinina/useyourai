@@ -3,7 +3,7 @@ data "aws_kms_alias" "lambda" {
 }
 
 resource "aws_iam_role" "lambda_exec_role" {
-  name = "LambdaExecutionRole"
+  name = "${var.project_name}-${var.environment}-lambda-exec-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -18,6 +18,7 @@ resource "aws_iam_role" "lambda_exec_role" {
       },
     ]
   })
+  tags = var.common_tags
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_logs" {
@@ -26,7 +27,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 }
 
 resource "aws_iam_role_policy" "dynamodb_rw_access_policy" {
-  name = "DynamodbRWAccess"
+  name = "${var.project_name}-${var.environment}-dynamodb-rw-access-policy"
   role = aws_iam_role.lambda_exec_role.id
 
   policy = jsonencode({
@@ -49,7 +50,7 @@ resource "aws_iam_role_policy" "dynamodb_rw_access_policy" {
 
 # Using the aws managed key to save costs
 resource "aws_iam_role_policy" "lambda_kms_key_access_policy" {
-  name = "LambdaKMSKeyAccess"
+  name = "${var.project_name}-${var.environment}-lambda-kms-key-access-policy"
   role = aws_iam_role.lambda_exec_role.id
 
   policy = jsonencode({
@@ -69,7 +70,7 @@ resource "aws_iam_role_policy" "lambda_kms_key_access_policy" {
 
 # TODO: narrow the permissions down to the models needed for the app logic
 resource "aws_iam_role_policy" "bedrock_invoke_models_policy" {
-  name = "BedrockInvokeModelsAccess"
+  name = "${var.project_name}-${var.environment}-bedrock-invoke-models-policy"
   role = aws_iam_role.lambda_exec_role.id
 
   policy = jsonencode({
@@ -89,7 +90,7 @@ resource "aws_iam_role_policy" "bedrock_invoke_models_policy" {
 
 # TODO: narrow the resource down
 resource "aws_iam_role_policy" "aws_marketplace_view_subscriptions_policy" {
-  name = "AWSMarketplaceViewSubscriptionsAccess"
+  name = "${var.project_name}-${var.environment}-aws-marketplace-view-subscriptions-policy"
   role = aws_iam_role.lambda_exec_role.id
 
   policy = jsonencode({

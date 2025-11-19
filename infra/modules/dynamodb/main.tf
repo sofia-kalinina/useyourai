@@ -1,5 +1,5 @@
 resource "aws_dynamodb_table" "language_learning" {
-  name         = "LanguageLearningTable-${var.environment}"
+  name         = "${var.project_name}-${var.environment}-table-language-learning"
   billing_mode = "PAY_PER_REQUEST"
 
   hash_key  = "session_id"
@@ -20,8 +20,7 @@ resource "aws_dynamodb_table" "language_learning" {
     enabled        = true
   }
 
-  tags = {
-    Name        = "LanguageLearningTable-${var.environment}"
-    Environment = "${var.environment}"
-  }
+  tags = merge(var.common_tags, {
+    Name = "${var.project_name}-${var.environment}-table-language-learning"
+  })
 }
