@@ -7,7 +7,7 @@ resource "aws_apigatewayv2_api" "useyourai_api" {
   })
 
   cors_configuration {
-    allow_origins = [var.cdn_url]
+    allow_origins = ["https://${var.cdn_url}"]
     allow_methods = ["POST", "OPTIONS"]
     allow_headers = ["Content-Type"]
   }
