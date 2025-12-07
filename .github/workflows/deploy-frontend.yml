@@ -89,7 +89,7 @@ jobs:
         run: |
           cat > ui/public/config.js <<EOF
           window.ENV = {
-            API_URL: '${{ steps.fetch_outputs.outputs.api_gateway_url }}'
+            API_URL: '${{ steps.fetch_outputs.outputs.api_gateway_url }}/dev'
           };
           EOF
           cat ui/public/config.js
