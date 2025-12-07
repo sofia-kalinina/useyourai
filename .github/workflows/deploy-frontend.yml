@@ -22,7 +22,7 @@ jobs:
     outputs:
       api_gateway_url: ${{ steps.fetch_outputs.outputs.api_gateway_url }}
       ui_bucket_name: ${{ steps.fetch_outputs.outputs.ui_bucket_name }}
-      cdn_url: ${{ steps.fetch_outputs.outputs.cdn_url }}
+      cdn_distribution_id: ${{ steps.fetch_outputs.outputs.cdn_distribution_id }}
     
     steps:
       - name: Checkout code
@@ -56,7 +56,7 @@ jobs:
             done
 
             API_GATEWAY_URL=""
-            CDN_URL=""
+            CDN_DISTRIBUTION_ID=""
             UI_BUCKET_NAME=""
 
             for item in "${all_data[@]}"; do
@@ -68,8 +68,8 @@ jobs:
                         "api_gateway_url")
                             API_GATEWAY_URL="$value"
                             ;;
-                        "cdn_url")
-                            CDN_URL="$value"
+                        "cdn_distribution_id")
+                            CDN_DISTRIBUTION_ID="$value"
                             ;;
                         "ui_bucket_name")
                             UI_BUCKET_NAME="$value"
@@ -79,11 +79,11 @@ jobs:
             done
 
             echo "API_GATEWAY_URL: $API_GATEWAY_URL"
-            echo "CDN_URL: $CDN_URL"
+            echo "CDN_DISTRIBUTION_ID: $CDN_DISTRIBUTION_ID"
             echo "UI_BUCKET_NAME: $UI_BUCKET_NAME"
           
             echo "api_gateway_url=$API_GATEWAY_URL" >> $GITHUB_OUTPUT
-            echo "cdn_url=$CDN_URL" >> $GITHUB_OUTPUT
+            echo "cdn_distribution_id=$CDN_DISTRIBUTION_ID" >> $GITHUB_OUTPUT
             echo "ui_bucket_name=$UI_BUCKET_NAME" >> $GITHUB_OUTPUT
 
       - name: Generate config.js
@@ -146,7 +146,7 @@ jobs:
 
       - name: Invalidate CDN cache
         run: |
-          echo "Invalidating CDN distribution: ${{ needs.build.outputs.cdn_url }}"
+          echo "Invalidating CDN distribution: ${{ needs.build.outputs.cdn_distribution_id }}"
           aws cloudfront create-invalidation \
-            --distribution-id ${{ needs.build.outputs.cdn_url }} \
+            --distribution-id ${{ needs.build.outputs.cdn_distribution_id }} \
             --paths "/*"
