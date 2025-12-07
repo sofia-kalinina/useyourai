@@ -1,6 +1,11 @@
 output "cdn_url" {
-  description = "CloudFront distribution domain name"
+  description = "CDN domain name"
   value       = aws_cloudfront_distribution.useyourai_ui_cdn.domain_name
+}
+
+output "cdn_distribution_id" {
+  description = "CDN distribution id"
+  value       = aws_cloudfront_distribution.useyourai_ui_cdn.id
 }
 
 output "ui_bucket_name" {
