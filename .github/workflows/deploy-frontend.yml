@@ -19,7 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      api_gateway_url: ${{ steps.fetch_outputs.outputs.api_gateway_url }}
+      api_gateway_invoke_url: ${{ steps.fetch_outputs.outputs.api_gateway_invoke_url }}
       ui_bucket_name: ${{ steps.fetch_outputs.outputs.ui_bucket_name }}
       cdn_distribution_id: ${{ steps.fetch_outputs.outputs.cdn_distribution_id }}
     
@@ -54,7 +54,7 @@ jobs:
                 next_url=$(echo "$response" | jq -r '.links.next // empty')
             done
 
-            API_GATEWAY_URL=""
+            API_GATEWAY_INVOKE_URL=""
             CDN_DISTRIBUTION_ID=""
             UI_BUCKET_NAME=""
 
@@ -64,8 +64,8 @@ jobs:
                     value=$(echo "$item" | jq -r '.attributes.value')
 
                     case $name in
-                        "api_gateway_url")
-                            API_GATEWAY_URL="$value"
+                        "api_gateway_invoke_url")
+                            API_GATEWAY_INVOKE_URL="$value"
                             ;;
                         "cdn_distribution_id")
                             CDN_DISTRIBUTION_ID="$value"
@@ -77,11 +77,11 @@ jobs:
                 fi
             done
 
-            echo "API_GATEWAY_URL: $API_GATEWAY_URL"
+            echo "API_GATEWAY_INVOKE_URL: $API_GATEWAY_INVOKE_URL"
             echo "CDN_DISTRIBUTION_ID: $CDN_DISTRIBUTION_ID"
             echo "UI_BUCKET_NAME: $UI_BUCKET_NAME"
           
-            echo "api_gateway_url=$API_GATEWAY_URL" >> $GITHUB_OUTPUT
+            echo "api_gateway_invoke_url=$API_GATEWAY_INVOKE_URL" >> $GITHUB_OUTPUT
             echo "cdn_distribution_id=$CDN_DISTRIBUTION_ID" >> $GITHUB_OUTPUT
             echo "ui_bucket_name=$UI_BUCKET_NAME" >> $GITHUB_OUTPUT
 
@@ -89,7 +89,7 @@ jobs:
         run: |
           cat > ui/public/config.js <<EOF
           window.ENV = {
-            API_URL: '${{ steps.fetch_outputs.outputs.api_gateway_url }}'
+            API_URL: '${{ steps.fetch_outputs.outputs.api_gateway_invoke_url }}'
           };
           EOF
           cat ui/public/config.js
