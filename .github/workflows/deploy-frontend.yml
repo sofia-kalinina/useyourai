@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/pass-api-gateway-to-frontend
   workflow_dispatch:
 
 env:
