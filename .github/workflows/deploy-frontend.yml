@@ -1,0 +1,152 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+      - feature/pass-api-gateway-to-frontend
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-central-1
+  TFC_WORKSPACE: ws-FRPCL1cuSBwuiLzS
+
+# Required for OIDC
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      api_gateway_url: ${{ steps.fetch_outputs.outputs.api_gateway_url }}
+      ui_bucket_name: ${{ steps.fetch_outputs.outputs.ui_bucket_name }}
+      cdn_distribution_id: ${{ steps.fetch_outputs.outputs.cdn_distribution_id }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Fetch Terraform Cloud outputs
+        id: fetch_outputs
+        run: |
+            STATE_VERSION_ID=$(curl -s \
+                --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" \
+                --header "Content-Type: application/vnd.api+json" \
+                "https://app.terraform.io/api/v2/workspaces/${{ env.TFC_WORKSPACE }}/current-state-version" | jq -r '.data.id'
+            )
+
+            BASE_URL="https://app.terraform.io/api/v2/state-versions/${STATE_VERSION_ID}/outputs?page%5Bnumber%5D=1\u0026page%5Bsize%5D=20"
+
+            all_data=()
+            next_url="$BASE_URL"
+
+            while [ -n "$next_url" ]; do
+                response=$(curl -s \
+                    --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" \
+                    --header "Content-Type: application/vnd.api+json" \
+                    "$next_url")
+                
+                while IFS= read -r line; do
+                    all_data+=("$line")
+                done < <(echo "$response" | jq -c '.data[]')
+                
+                next_url=$(echo "$response" | jq -r '.links.next // empty')
+            done
+
+            API_GATEWAY_URL=""
+            CDN_DISTRIBUTION_ID=""
+            UI_BUCKET_NAME=""
+
+            for item in "${all_data[@]}"; do
+                if [ -n "$item" ]; then
+                    name=$(echo "$item" | jq -r '.attributes.name')
+                    value=$(echo "$item" | jq -r '.attributes.value')
+
+                    case $name in
+                        "api_gateway_url")
+                            API_GATEWAY_URL="$value"
+                            ;;
+                        "cdn_distribution_id")
+                            CDN_DISTRIBUTION_ID="$value"
+                            ;;
+                        "ui_bucket_name")
+                            UI_BUCKET_NAME="$value"
+                            ;;
+                    esac
+                fi
+            done
+
+            echo "API_GATEWAY_URL: $API_GATEWAY_URL"
+            echo "CDN_DISTRIBUTION_ID: $CDN_DISTRIBUTION_ID"
+            echo "UI_BUCKET_NAME: $UI_BUCKET_NAME"
+          
+            echo "api_gateway_url=$API_GATEWAY_URL" >> $GITHUB_OUTPUT
+            echo "cdn_distribution_id=$CDN_DISTRIBUTION_ID" >> $GITHUB_OUTPUT
+            echo "ui_bucket_name=$UI_BUCKET_NAME" >> $GITHUB_OUTPUT
+
+      - name: Generate config.js
+        run: |
+          cat > ui/public/config.js <<EOF
+          window.ENV = {
+            API_URL: '${{ steps.fetch_outputs.outputs.api_gateway_url }}'
+          };
+          EOF
+          cat ui/public/config.js
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd ui
+          npm ci
+
+      - name: Build React app
+        run: |
+          cd ui
+          npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ui/build/
+          retention-days: 1
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ui/build/
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Deploy to S3
+        run: |
+          echo "Deploying to S3 bucket: ${{ needs.build.outputs.ui_bucket_name }}"
+          aws s3 sync ui/build/ s3://${{ needs.build.outputs.ui_bucket_name }}/ --delete
+
+      - name: Invalidate CDN cache
+        run: |
+          echo "Invalidating CDN distribution: ${{ needs.build.outputs.cdn_distribution_id }}"
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ needs.build.outputs.cdn_distribution_id }} \
+            --paths "/*"

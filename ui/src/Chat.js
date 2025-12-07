@@ -5,10 +5,32 @@ import Message from './Message';
 import './Chat.css';
 
 const Chat = () => {
+  // Declare API_URL first
+  const API_URL = window.ENV?.API_URL;
+
   const [messages, setMessages] = useState([
     { text: 'Welcome to useyourai! Ask for some exercises to get started.', sender: 'system' },
   ]);
   const [input, setInput] = useState('');
+
+  // Then check if it exists
+  if (!API_URL) {
+    return (
+      <div className="chat-container" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'red',
+        padding: '20px',
+        textAlign: 'center'
+      }}>
+        <div>
+          <h2>Configuration Error</h2>
+          <p>API_URL is not configured. Please ensure config.js is loaded correctly.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSend = async () => {
     if (input.trim()) {
@@ -17,7 +39,7 @@ const Chat = () => {
       setInput('');
 
       try {
-        const response = await axios.post('https://k70r21jrb5.execute-api.eu-central-1.amazonaws.com/dev/test', {
+        const response = await axios.post(`${API_URL}/test`, {
           prompt: input,
         });
 
