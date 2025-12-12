@@ -8,8 +8,8 @@ locals {
   name_prefix = "${local.project_name}-${var.environment}"
 }
 
-module "ui" {
-  source = "../../modules/ui"
+module "frontend" {
+  source = "../../modules/frontend"
 
   environment               = var.environment
   project_name              = var.project_name
@@ -41,7 +41,8 @@ module "api_gateway" {
   environment  = var.environment
   project_name = var.project_name
   common_tags  = local.common_tags
-  cdn_url      = module.ui.cdn_url
+  cdn_url      = module.frontend.cdn_url
+
   lambdas = [
     {
       name       = module.lambdas.init_session_lambda_name

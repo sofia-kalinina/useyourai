@@ -32,10 +32,10 @@ resource "aws_cloudfront_origin_access_control" "useyourai_ui_oac" {
 resource "aws_cloudfront_distribution" "useyourai_ui_cdn" {
   enabled             = true
   is_ipv6_enabled     = true
-  comment             = "CDN for ${var.project_name} ui ${var.environment}"
+  comment             = "CDN for ${var.project_name} ${var.environment}"
   default_root_object = "index.html"
   tags = merge(var.common_tags, {
-    Name = "${var.project_name}-${var.environment}-ui-cdn"
+    Name = "${var.project_name}-${var.environment}-cdn"
   })
 
   # We do NOT use 'aliases' since we don't have a custom domain yet
