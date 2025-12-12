@@ -3,6 +3,11 @@ variable "common_tags" {
   type        = map(string)
 }
 
+variable "certificate_arn" {
+  description = "ARN of ACM certificate"
+  type        = string
+}
+
 variable "domain_name" {
   description = "Domain name of the application"
   type        = string
