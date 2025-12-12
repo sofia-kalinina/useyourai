@@ -21,7 +21,7 @@ module "frontend" {
   }
 
   common_tags     = local.common_tags
-  domain_name     = var.domain_name
+  domain_name     = "dev.${var.domain_name}"
   environment     = var.environment
   hosted_zone_id  = data.tfe_outputs.base_outputs.values.hosted_zone_id
   certificate_arn = data.tfe_outputs.base_outputs.values.dev_certificate_arn

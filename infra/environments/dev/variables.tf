@@ -4,9 +4,9 @@ variable "account_id" {
 }
 
 variable "domain_name" {
-  description = "Domain name of the app in this environment"
+  description = "Domain name of the app"
   type        = string
-  default     = "dev.useyourai.com"
+  default     = "useyourai.eu"
 }
 
 variable "environment" {
