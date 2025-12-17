@@ -11,10 +11,14 @@ locals {
 module "frontend" {
   source = "../../modules/frontend"
 
-  environment               = var.environment
-  project_name              = var.project_name
+  common_tags    = local.common_tags
+  domain_name    = "dev.useyourai.com"
+  environment    = var.environment
+  hosted_zone_id = var.hosted_zone_id
+  project_name   = var.project_name
+
   managed_by_github_actions = true
-  common_tags               = local.common_tags
+
 }
 
 module "dynamodb" {
