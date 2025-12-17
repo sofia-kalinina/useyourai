@@ -3,13 +3,14 @@ variable "account_id" {
   type        = string
 }
 
-variable "environment" {
-  description = "Environment name"
+variable "domain_name" {
+  description = "Domain name of the app in this environment"
   type        = string
+  default     = "dev.useyourai.com"
 }
 
-variable "hosted_zone_id" {
-  description = "ID of Route53 hosted zone to create DNS records"
+variable "environment" {
+  description = "Environment name"
   type        = string
 }
 

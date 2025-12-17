@@ -2,10 +2,14 @@
 /node_modules
 /ui/node_modules
 
+# Terraform cache
+**/.terraform
+
 # Build artifacts
 /ui/build
 
 # Other
 .DS_Store
 **/config.js
+
 

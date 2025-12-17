@@ -70,8 +70,8 @@ resource "aws_iam_policy" "github_deploy" {
           "s3:ListBucket"
         ]
         Resource = [
-          aws_s3_bucket.ui_bucket.arn,
-          "${aws_s3_bucket.ui_bucket.arn}/*"
+          aws_s3_bucket.frontend_bucket.arn,
+          "${aws_s3_bucket.frontend_bucket.arn}/*"
         ]
       },
       {
@@ -81,7 +81,7 @@ resource "aws_iam_policy" "github_deploy" {
           "cloudfront:CreateInvalidation",
           "cloudfront:GetInvalidation"
         ]
-        Resource = aws_cloudfront_distribution.useyourai_ui_cdn.arn
+        Resource = aws_cloudfront_distribution.frontend_cdn.arn
       }
     ]
   })

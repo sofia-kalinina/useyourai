@@ -14,7 +14,7 @@ variable "environment" {
 }
 
 variable "hosted_zone_id" {
-
+  description = "ID of Route53 hosted zone to create record"
 }
 
 variable "managed_by_github_actions" {

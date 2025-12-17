@@ -3,7 +3,7 @@ terraform {
     organization = "sofiia-kalinina"
 
     workspaces {
-      name = "useyourai-${var.environment}"
+      name = "useyourai-dev"
     }
   }
   required_providers {

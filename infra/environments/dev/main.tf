@@ -1,3 +1,8 @@
+data "tfe_outputs" "base_outputs" {
+  organization = "sofiia-kalinina"
+  workspace    = "useyourai-base"
+}
+
 locals {
   project_name = var.project_name
   common_tags = {
@@ -10,11 +15,15 @@ locals {
 
 module "frontend" {
   source = "../../modules/frontend"
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
 
   common_tags    = local.common_tags
-  domain_name    = "dev.useyourai.com"
+  domain_name    = var.domain_name
   environment    = var.environment
-  hosted_zone_id = var.hosted_zone_id
+  hosted_zone_id = data.tfe_outputs.base_outputs.values.hosted_zone_id
   project_name   = var.project_name
 
   managed_by_github_actions = true
