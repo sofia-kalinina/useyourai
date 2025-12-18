@@ -1,9 +1,8 @@
 provider "aws" {
-  region = var.aws_region
+  region = var.region
 }
 
-variable "aws_region" {
-  description = "AWS region for provider configuration"
-  type        = string
-  default     = "eu-central-1"
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
 }

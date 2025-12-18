@@ -1,18 +1,12 @@
-variable "project_name" {
-  description = "The name of the project"
-  type        = string
-  default     = "useyourai"
-}
-
-variable "tags" {
-  description = "Map of tags to assign to resources"
-  type        = map(string)
-  default     = {}
-}
-
 variable "account_id" {
   description = "AWS account ID"
   type        = string
+}
+
+variable "domain_name" {
+  description = "Domain name of the app in this environment"
+  type        = string
+  default     = "dev.useyourai.com"
 }
 
 variable "environment" {
@@ -20,8 +14,20 @@ variable "environment" {
   type        = string
 }
 
+variable "project_name" {
+  description = "The name of the project"
+  type        = string
+  default     = "useyourai"
+}
+
 variable "region" {
   description = "AWS region"
   type        = string
   default     = "eu-central-1"
+}
+
+variable "tags" {
+  description = "Map of tags to assign to resources"
+  type        = map(string)
+  default     = {}
 }
