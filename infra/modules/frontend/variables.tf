@@ -6,6 +6,7 @@ variable "common_tags" {
 variable "certificate_arn" {
   description = "ARN of ACM certificate"
   type        = string
+  default     = null
 }
 
 variable "domain_name" {
