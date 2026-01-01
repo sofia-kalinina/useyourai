@@ -10,12 +10,12 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
   enabled             = true
   is_ipv6_enabled     = true
   comment             = "CDN for ${var.project_name} ${var.environment}"
+  aliases             = var.certificate_arn != null ? [var.domain_name] : []
   default_root_object = "index.html"
   tags = merge(var.common_tags, {
     Name = "${var.project_name}-${var.environment}-cdn"
   })
 
-  # We do NOT use 'aliases' since we don't have a custom domain yet
   origin {
     domain_name              = aws_s3_bucket.frontend_bucket.bucket_regional_domain_name
     origin_id                = aws_s3_bucket.frontend_bucket.id
@@ -49,7 +49,7 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
     acm_certificate_arn            = var.certificate_arn
     cloudfront_default_certificate = var.certificate_arn == null
     ssl_support_method             = var.certificate_arn != null ? "sni-only" : null
-    minimum_protocol_version       = var.certificate_arn != null ? "TLSv1.2_2021" : null
+    minimum_protocol_version       = "TLSv1.2_2021"
   }
 
   # US, Canada, Europe, and Israel
