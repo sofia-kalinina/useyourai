@@ -1,12 +1,12 @@
-variable "project_name" {
-  description = "The name of the project"
-  type        = string
-}
-
 variable "cdn_url" {
   description = "CDN url"
   type        = string
+}
 
+variable "custom_domain_name" {
+  description = "Custom domain name for CORS"
+  type        = string
+  default     = ""
 }
 
 variable "common_tags" {
@@ -26,4 +26,9 @@ variable "lambdas" {
     invoke_arn = string
     route_key  = string
   }))
+}
+
+variable "project_name" {
+  description = "The name of the project"
+  type        = string
 }
