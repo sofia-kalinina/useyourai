@@ -42,10 +42,14 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
   }
 
   # SSL/TLS Certificate
+  # if the external cert has been created, use it
+  # if not, use the CloudFront default certificate
+
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate_validation.frontend_certificate_validation.certificate_arn
-    ssl_support_method       = "sni-only"
-    minimum_protocol_version = "TLSv1.2_2021"
+    acm_certificate_arn            = var.certificate_arn
+    cloudfront_default_certificate = var.certificate_arn == null
+    ssl_support_method             = var.certificate_arn != null ? "sni-only" : null
+    minimum_protocol_version       = var.certificate_arn != null ? "TLSv1.2_2021" : null
   }
 
   # US, Canada, Europe, and Israel

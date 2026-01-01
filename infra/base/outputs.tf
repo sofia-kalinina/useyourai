@@ -1,3 +1,8 @@
+output "dev_certificate_arn" {
+  description = "ARN of the validated certificate for the dev environment"
+  value       = var.create_certificate ? aws_acm_certificate_validation.dev_certificate_validation[0].certificate_arn : null
+}
+
 output "hosted_zone_id" {
   description = "ID of the primary hosted zone"
   value       = aws_route53_zone.primary.id

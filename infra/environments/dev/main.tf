@@ -69,4 +69,3 @@ module "api_gateway" {
     }
   ]
 }
-
