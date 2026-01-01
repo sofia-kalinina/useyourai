@@ -1,6 +1,6 @@
 output "dev_certificate_arn" {
   description = "ARN of the validated certificate for the dev environment"
-  value       = aws_acm_certificate_validation.dev_certificate_validation.certificate_arn
+  value       = var.create_certificate ? aws_acm_certificate_validation.dev_certificate_validation[0].certificate_arn : null
 }
 
 output "hosted_zone_id" {
