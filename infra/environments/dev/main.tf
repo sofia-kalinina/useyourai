@@ -20,11 +20,12 @@ module "frontend" {
     aws.us_east_1 = aws.us_east_1
   }
 
-  common_tags    = local.common_tags
-  domain_name    = var.domain_name
-  environment    = var.environment
-  hosted_zone_id = data.tfe_outputs.base_outputs.values.hosted_zone_id
-  project_name   = var.project_name
+  common_tags     = local.common_tags
+  domain_name     = var.domain_name
+  environment     = var.environment
+  hosted_zone_id  = data.tfe_outputs.base_outputs.values.hosted_zone_id
+  certificate_arn = data.tfe_outputs.base_outputs.values.dev_certificate_arn
+  project_name    = var.project_name
 
   managed_by_github_actions = true
 
