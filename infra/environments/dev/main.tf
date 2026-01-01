@@ -52,10 +52,11 @@ module "lambdas" {
 module "api_gateway" {
   source = "../../modules/api_gateway"
 
-  environment  = var.environment
-  project_name = var.project_name
-  common_tags  = local.common_tags
-  cdn_url      = module.frontend.cdn_url
+  environment        = var.environment
+  project_name       = var.project_name
+  common_tags        = local.common_tags
+  cdn_url            = module.frontend.cdn_url
+  custom_domain_name = "dev.${var.domain_name}"
 
   lambdas = [
     {
