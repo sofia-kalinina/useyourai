@@ -1,19 +1,23 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import Message from './Message';
 import './Chat.css';
 
 const Chat = () => {
-  // Declare API_URL first
   const API_URL = window.ENV?.API_URL;
 
   const [messages, setMessages] = useState([
     { text: 'Welcome to useyourai! Ask for some exercises to get started.', sender: 'system' },
   ]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef(null);
 
-  // Then check if it exists
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
+
   if (!API_URL) {
     return (
       <div className="chat-container" style={{
@@ -33,23 +37,26 @@ const Chat = () => {
   }
 
   const handleSend = async () => {
-    if (input.trim()) {
-      const userMessage = { text: input, sender: 'user' };
-      setMessages((prevMessages) => [...prevMessages, userMessage]);
-      setInput('');
+    if (!input.trim() || isLoading) return;
 
-      try {
-        const response = await axios.post(`${API_URL}/test`, {
-          prompt: input,
-        });
+    const userMessage = { text: input, sender: 'user' };
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setInput('');
+    setIsLoading(true);
 
-        const systemMessage = { text: response.data.reply, sender: 'system' };
-        setMessages((prevMessages) => [...prevMessages, systemMessage]);
-      } catch (error) {
-        console.error('Error fetching response:', error);
-        const errorMessage = { text: 'Sorry, something went wrong. Please try again.', sender: 'system' };
-        setMessages((prevMessages) => [...prevMessages, errorMessage]);
-      }
+    try {
+      const response = await axios.post(`${API_URL}/test`, {
+        prompt: input,
+      });
+
+      const systemMessage = { text: response.data.reply, sender: 'system' };
+      setMessages((prevMessages) => [...prevMessages, systemMessage]);
+    } catch (error) {
+      console.error('Error fetching response:', error);
+      const errorMessage = { text: 'Sorry, something went wrong. Please try again.', sender: 'system' };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -59,6 +66,14 @@ const Chat = () => {
         {messages.map((message, index) => (
           <Message key={index} message={message} />
         ))}
+        {isLoading && (
+          <div className="message system">
+            <div className="typing-bubble">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
       <div className="input-area">
         <input
@@ -66,9 +81,15 @@ const Chat = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Type your request..."
+          placeholder="Ask for exercises, e.g. 'Give me 5 German adjective exercises'"
+          disabled={isLoading}
         />
-        <button onClick={handleSend}>Send</button>
+        <button onClick={handleSend} disabled={isLoading || !input.trim()} aria-label="Send">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
       </div>
     </div>
   );

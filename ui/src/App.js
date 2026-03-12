@@ -7,13 +7,14 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>useyour</h1>
-        <div className="App-logo">
-          <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 0C22.3858 0 0 22.3858 0 50C0 62.5833 4.625 73.75 12.5 82.5L10 100L30 92.5C38.75 97.375 49.9167 100 62.5 100C87.6142 100 100 77.6142 100 50C100 22.3858 77.6142 0 50 0Z" fill="#61DAFB"/>
-            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="51" fill="#282c34" font-weight="bold">AI</text>
+        <h1 className="App-brand">
+          useyour
+          <svg className="brand-bubble" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15,0 H85 C93,0 100,7 100,15 V60 C100,68 93,75 85,75 H30 L10,98 L22,75 H15 C7,75 0,68 0,60 V15 C0,7 7,0 15,0 Z" fill="#61DAFB"/>
+            <text x="50%" y="38%" dominantBaseline="middle" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="36" fill="#282c34" fontWeight="bold">ai</text>
           </svg>
-        </div>
+        </h1>
+        <p className="App-tagline">AI-powered language practice</p>
       </header>
       <Chat />
     </div>

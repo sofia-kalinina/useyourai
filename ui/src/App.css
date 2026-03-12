@@ -1,26 +1,41 @@
-
 .App {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f0f2f5;
 }
 
 .App-header {
-  background-color: #282c34;
-  padding: 10px; /* Reduced padding */
   display: flex;
-  flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
-  font-size: calc(5px + 1vmin); /* Reduced font size */
+  gap: 12px;
+  padding: 0 20px;
+  height: 60px;
+  background-color: #282c34;
+  flex-shrink: 0;
+}
+
+.App-brand {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 1.2rem;
+  font-weight: 700;
   color: white;
+  margin: 0;
+  letter-spacing: -0.02em;
 }
 
-.App-header h1 {
-  margin-left: 10px; /* Space between logo and title */
-  margin-right: 5px; /* Reduced space between title and logo */
+.brand-bubble {
+  height: 48px;
+  width: auto;
+  margin-top: 10px;
 }
 
-.App-logo {
-  height: 50px; /* Reduced size */
-  width: 50px; /* Reduced size */
+.App-tagline {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+  font-weight: 400;
+  margin-left: auto;
 }
-
