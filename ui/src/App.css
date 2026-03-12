@@ -11,32 +11,30 @@
   gap: 12px;
   padding: 0 20px;
   height: 60px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+  background-color: #282c34;
   flex-shrink: 0;
 }
 
-.App-logo {
-  flex-shrink: 0;
+.App-brand {
   display: flex;
   align-items: center;
-}
-
-.App-header h1 {
+  gap: 3px;
   font-size: 1.2rem;
   font-weight: 700;
-  color: #111827;
+  color: white;
   margin: 0;
   letter-spacing: -0.02em;
 }
 
-.App-header h1 span {
-  color: #6366f1;
+.brand-bubble {
+  height: 48px;
+  width: auto;
+  margin-top: 10px;
 }
 
 .App-tagline {
   font-size: 0.78rem;
-  color: #9ca3af;
+  color: rgba(255, 255, 255, 0.45);
   margin: 0;
   font-weight: 400;
   margin-left: auto;

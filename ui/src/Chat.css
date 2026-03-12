@@ -59,7 +59,7 @@
 }
 
 .input-area input:focus {
-  border-color: #6366f1;
+  border-color: #282c34;
 }
 
 .input-area input::placeholder {
@@ -75,7 +75,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #6366f1;
+  background: #282c34;
   color: white;
   border: none;
   cursor: pointer;
@@ -87,7 +87,7 @@
 }
 
 .input-area button:hover:not(:disabled) {
-  background: #4f46e5;
+  background: #3a3f4b;
 }
 
 .input-area button:active:not(:disabled) {
@@ -95,16 +95,15 @@
 }
 
 .input-area button:disabled {
-  background: #d1d5db;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .typing-bubble {
-  background: #ffffff;
+  background-color: #f0f0f0;
   padding: 14px 18px;
   border-radius: 18px;
   border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -113,18 +112,13 @@
 .typing-bubble span {
   width: 7px;
   height: 7px;
-  background: #9ca3af;
+  background: #aaa;
   border-radius: 50%;
   animation: bounce 1.2s infinite;
 }
 
-.typing-bubble span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.typing-bubble span:nth-child(3) {
-  animation-delay: 0.4s;
-}
+.typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+.typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
 
 @keyframes bounce {
   0%, 60%, 100% { transform: translateY(0); }

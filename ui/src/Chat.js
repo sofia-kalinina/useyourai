@@ -31,16 +31,21 @@ const Chat = () => {
     if (!input.trim() || isLoading) return;
 
     const userMessage = { text: input, sender: 'user' };
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/test`, { prompt: input });
-      setMessages(prev => [...prev, { text: response.data.reply, sender: 'system' }]);
+      const response = await axios.post(`${API_URL}/test`, {
+        prompt: input,
+      });
+
+      const systemMessage = { text: response.data.reply, sender: 'system' };
+      setMessages((prevMessages) => [...prevMessages, systemMessage]);
     } catch (error) {
       console.error('Error fetching response:', error);
-      setMessages(prev => [...prev, { text: 'Sorry, something went wrong. Please try again.', sender: 'system' }]);
+      const errorMessage = { text: 'Sorry, something went wrong. Please try again.', sender: 'system' };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }

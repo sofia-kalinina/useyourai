@@ -1,3 +1,4 @@
+
 .message {
   display: flex;
   max-width: 75%;
@@ -27,14 +28,13 @@
 }
 
 .message.user p {
-  background: #6366f1;
-  color: #ffffff;
+  background-color: #dcf8c6;
+  color: #111827;
   border-bottom-right-radius: 4px;
 }
 
 .message.system p {
-  background: #ffffff;
+  background-color: #f0f0f0;
   color: #111827;
   border-bottom-left-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
