@@ -20,18 +20,9 @@ const Chat = () => {
 
   if (!API_URL) {
     return (
-      <div className="chat-container" style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'red',
-        padding: '20px',
-        textAlign: 'center'
-      }}>
-        <div>
-          <h2>Configuration Error</h2>
-          <p>API_URL is not configured. Please ensure config.js is loaded correctly.</p>
-        </div>
+      <div className="chat-container config-error">
+        <h2>Configuration Error</h2>
+        <p>API_URL is not configured. Please ensure config.js is loaded correctly.</p>
       </div>
     );
   }
