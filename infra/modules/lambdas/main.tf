@@ -17,7 +17,7 @@ resource "aws_lambda_function" "init_session_lambda" {
 
   environment {
     variables = {
-      ENVIRONMENT = var.environment
+      TABLE_NAME = var.dynamodb_table_name
     }
   }
   tags = merge(var.common_tags, {

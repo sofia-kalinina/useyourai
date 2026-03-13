@@ -41,7 +41,7 @@ resource "aws_iam_role_policy" "dynamodb_rw_access_policy" {
           "dynamodb:DeleteItem"
         ]
         Effect   = "Allow"
-        Resource = "arn:aws:dynamodb:${var.region}:${var.account_id}:table/LanguageLearningTable-${var.environment}"
+        Resource = var.dynamodb_table_arn
       }
     ]
   })
