@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: useyourai Lambda functions
+
+Globals:
+  Function:
+    Runtime: python3.11
+    Timeout: 30
+    Environment:
+      Variables:
+        TABLE_NAME: !Sub "${AWS::StackName}-table-language-learning"
+
+Resources:
+  CreateSessionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: create_session
+      CodeUri: lambdas/
+      Handler: create_session.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Sub "${AWS::StackName}-table-language-learning"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /session
+            Method: post
+
+  # Placeholder Lambdas — pre-plan, to be removed in Sprint 2
+  InitSessionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: init_session
+      CodeUri: lambdas/
+      Handler: init_session.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Sub "${AWS::StackName}-table-language-learning"
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /init
+            Method: post
+
+  TestBedrockFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: test_bedrock
+      CodeUri: lambdas/
+      Handler: test_bedrock.lambda_handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /test
+            Method: post
