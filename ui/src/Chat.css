@@ -55,11 +55,13 @@
   background: #ffffff;
   color: #111827;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
 }
 
 .input-area input:focus {
-  border-color: #282c34;
+  border-color: #61DAFB;
+  box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.2), 0 1px 4px rgba(0, 0, 0, 0.07);
 }
 
 .input-area input::placeholder {
@@ -75,44 +77,49 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #282c34;
-  color: white;
+  background: linear-gradient(135deg, #61DAFB 0%, #38c9f0 100%);
+  color: #0a2a35;
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.15s, transform 0.1s;
+  transition: box-shadow 0.15s, transform 0.1s, filter 0.15s;
+  box-shadow: 0 3px 10px rgba(97, 218, 251, 0.5);
 }
 
 .input-area button:hover:not(:disabled) {
-  background: #3a3f4b;
+  filter: brightness(1.08);
+  box-shadow: 0 4px 14px rgba(97, 218, 251, 0.6);
 }
 
 .input-area button:active:not(:disabled) {
   transform: scale(0.94);
+  box-shadow: 0 2px 6px rgba(97, 218, 251, 0.4);
 }
 
 .input-area button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .typing-bubble {
-  background-color: #f0f0f0;
+  background: #ffffff;
   padding: 14px 18px;
-  border-radius: 18px;
-  border-bottom-left-radius: 4px;
+  border-radius: 20px;
+  border-bottom-left-radius: 5px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .typing-bubble span {
   width: 7px;
   height: 7px;
-  background: #aaa;
+  background: #61DAFB;
   border-radius: 50%;
   animation: bounce 1.2s infinite;
 }
