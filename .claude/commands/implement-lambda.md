@@ -310,7 +310,42 @@ git add infra/
 git commit -m "Add <name> Lambda and POST /<route> route to API Gateway"
 ```
 
-## Step 13 — Open a PR
+## Step 13 — Update the frontend
+
+Find the component that makes API calls (currently `ui/src/Chat.js`) and update it to call the new endpoint. At minimum:
+- Change the endpoint URL to the new route
+- Update the request payload to match the new Lambda's expected input
+- Update the response handling to match the new response shape
+
+Commit as a separate commit on the same branch:
+```bash
+git add ui/
+git commit -m "Update <component> to call <endpoint>"
+```
+
+## Step 13b — Update CLAUDE.md and docs
+
+Update `CLAUDE.md` backend section to reflect the new Lambda (add it to the list, describe what it does). Update `docs/implementation_plan.md` to mark completed sprint items with ✅.
+
+Commit together on the same branch:
+```bash
+git add CLAUDE.md docs/implementation_plan.md
+git commit -m "Update CLAUDE.md and implementation plan to reflect <Lambda name>"
+```
+
+## Step 14 — Confirm with user before pushing
+
+Show a summary of all commits on the branch (`git log main..HEAD --oneline`) and the full list of changed files, then **stop and ask the user to confirm** before pushing or creating the PR.
+
+## Step 15 — Push and open a PR
+
+Only proceed after explicit confirmation:
+
+```bash
+git push -u origin <branch-name>
+```
+
+Then show the user the draft PR title and body and **ask for confirmation again** before running:
 
 ```bash
 gh pr create \
@@ -338,7 +373,7 @@ EOF
 )"
 ```
 
-## Step 14 — Update the GitHub issue
+## Step 16 — Update the GitHub issue
 
 ```bash
 gh issue comment $ARGUMENTS --body "<pr-url>"
