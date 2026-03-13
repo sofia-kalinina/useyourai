@@ -23,10 +23,10 @@ Analyse the diff and decide how many commits make sense.
 Group by **logical topic** — changes that serve the same idea or concern belong in one commit, even if they span multiple file types. Changes that serve different ideas should be separate commits, even if they're all the same file type (e.g. two unrelated markdown edits = two commits).
 
 Examples:
-- `CLAUDE.md` update + related `docs/` changes → one commit (same topic: project context)
-- `.claude/commands/` changes → separate commit (different topic: Claude commands)
 - Terraform module change + Lambda env var to match → one commit (same topic: the feature they jointly implement)
 - Frontend component + its CSS → one commit; unrelated CI workflow fix → separate commit
+- `CLAUDE.md` + `.claude/commands/` updates caused by this work → one additional commit on the same branch (separate from the feature commit, but not on a different branch)
+- Unrelated `CLAUDE.md` cleanup → separate branch entirely
 
 For each commit:
 1. Stage the relevant files: `git add <specific files>` — never `git add .` blindly
