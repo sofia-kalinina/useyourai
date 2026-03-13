@@ -62,6 +62,11 @@ module "api_gateway" {
 
   lambdas = [
     {
+      name       = module.lambdas.create_session_lambda_name
+      invoke_arn = module.lambdas.create_session_lambda_invoke_arn
+      route_key  = "POST /session"
+    },
+    {
       name       = module.lambdas.init_session_lambda_name
       invoke_arn = module.lambdas.init_session_lambda_invoke_arn
       route_key  = "POST /init"

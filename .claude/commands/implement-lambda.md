@@ -2,144 +2,230 @@
 
 Implement a Lambda function task end-to-end from a GitHub issue.
 
-**Issue number:** $ARGUMENTS
+**Argument:** $ARGUMENTS — either an issue number (`26`) or a description (`to create a session`).
 
 ---
 
-## Step 1 — Fetch the GitHub issue
+## Step 1 — Resolve and fetch the GitHub issue
 
+If `$ARGUMENTS` is a number, use it directly:
 ```bash
 gh issue view $ARGUMENTS
 ```
+
+If `$ARGUMENTS` is a description, search for the matching issue first:
+```bash
+gh issue list --state open --limit 50
+```
+Find the issue whose title best matches the description, note its number, then fetch it:
+```bash
+gh issue view <number>
+```
+
+Use that issue number for all subsequent steps in place of `$ARGUMENTS`.
 
 Extract: title, body. This is your full spec.
 
 ## Step 2 — Move issue to In Progress
 
-Add the `in-progress` label:
 ```bash
 gh issue edit $ARGUMENTS --add-label "in-progress"
 ```
 
-## Step 3 — Create a branch
+## Step 3 — Create a branch from main
 
-Branch name: `feature/<kebab-case-card-name>` or `fix/<kebab-case-card-name>` depending on context.
+Always start from an up-to-date main:
 
 ```bash
-git checkout -b <branch-name>
+git checkout main && git pull origin main && git checkout -b feature/<kebab-case-name>
 ```
 
 ## Step 4 — Read existing code for patterns
 
 Before writing anything, read the existing Lambda files in `lambdas/` to understand:
 - Code structure and style
-- How DynamoDB is initialised (module-level, using `TABLE_NAME` env var sourced from Terraform)
-- How Bedrock is called
+- How DynamoDB and Bedrock clients are initialised at module level
 - Response shape (`statusCode` + JSON `body`)
 
-Also read `docs/implementation_plan.md` if it exists.
+Also read `docs/implementation_plan.md`.
 
-## Step 5 — Write or edit the Lambda function
+## Step 5 — Write the Lambda function
 
-Create or update the relevant file in `lambdas/`. Follow the patterns from existing Lambdas:
-- Python 3.11
-- `lambda_handler(event, context)` entry point
-- Read table name from `os.getenv('TABLE_NAME')` — injected by Terraform at deploy time
-- Return `{"statusCode": <int>, "body": json.dumps({...})}`
-- Parse request body with `json.loads(event.get('body'))`
-- Validate inputs and return 400 for bad requests
+Create `lambdas/<function_name>.py`. Follow these patterns exactly:
 
-## Step 6 — Create or update `template.yaml`
+**Module-level initialisation:**
+```python
+table_name = os.getenv('TABLE_NAME')
+if not table_name:
+    raise ValueError("Environment variable 'TABLE_NAME' is not set.")
 
-If `template.yaml` does not exist, create it at the repo root. If it exists, add or update the relevant function.
+dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
+table = dynamodb.Table(table_name)
 
-The template must include ALL Lambda functions currently in `lambdas/` (not just the new one). Check what `.py` files exist in `lambdas/` and include each one.
-
-Use this structure as a base, extending it for all functions:
-
-```yaml
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: useyourai Lambda functions
-
-Globals:
-  Function:
-    Runtime: python3.11
-    Timeout: 30
-    Environment:
-      Variables:
-        TABLE_NAME: !Sub "${AWS::StackName}-table-language-learning"
-
-Resources:
-  InitSessionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: init_session
-      CodeUri: lambdas/
-      Handler: init_session.lambda_handler
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Sub "${AWS::StackName}-table-language-learning"
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /init
-            Method: post
-
-  TestBedrockFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: test_bedrock
-      CodeUri: lambdas/
-      Handler: test_bedrock.lambda_handler
-      Policies:
-        - Statement:
-            - Effect: Allow
-              Action:
-                - bedrock:InvokeModel
-              Resource: "*"
-      Events:
-        Api:
-          Type: Api
-          Properties:
-            Path: /test
-            Method: post
-
-  # Add new function here following the same pattern
+bedrock = boto3.client(service_name='bedrock-runtime', region_name='eu-central-1')
+INFERENCE_PROFILE_ID = "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
 ```
 
-## Step 7 — Write pytest tests
+**Critical:** all `boto3` clients and resources must specify `region_name='eu-central-1'` explicitly. Without it, CI fails at import time with `NoRegionError` because conftest fixtures run after module-level code is executed.
 
-Create a test file `tests/test_<function_name>.py`. Use `moto` to mock AWS services.
+**Handler skeleton:**
+```python
+def lambda_handler(event, context):
+    body_string = event.get('body')
+    if not body_string:
+        return {"statusCode": 400, "body": json.dumps({"error": "Request body is required"})}
 
-Test structure guidelines:
-- For functions that write to DynamoDB: mock the table, invoke the handler, assert the item was written and the response has `statusCode: 200`
-- For functions that call Bedrock: mock `bedrock-runtime` with `moto`, or patch `boto3.client` to return a fake response; assert the reply is returned in the response body
-- For validation logic: test missing/malformed body returns `statusCode: 400`
-- Use `@pytest.fixture` for repeated setup (e.g. mocked DynamoDB table)
-- Set `TABLE_NAME=test-table` in the test environment
+    try:
+        body = json.loads(body_string)
+    except (json.JSONDecodeError, ValueError):
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid JSON in request body"})}
 
-Check `tests/` for existing test files and follow their style.
+    # validate required fields, then do work...
 
-## Step 8 — Run tests locally
+    return {"statusCode": 200, "body": json.dumps({...})}
+```
+
+**Bedrock invocation:**
+```python
+response = bedrock.invoke_model(
+    modelId=INFERENCE_PROFILE_ID,
+    accept="application/json",
+    contentType="application/json",
+    body=json.dumps({
+        "system": SYSTEM_PROMPT,
+        "messages": [{"role": "user", "content": [{"type": "text", "text": prompt}]}],
+        "anthropic_version": "bedrock-2023-05-31",
+        "max_tokens": 2048,
+        "temperature": 0.7
+    })
+)
+model_output = json.loads(response["body"].read())
+text = model_output["content"][0]["text"]
+```
+
+## Step 6 — Create or update `pytest.ini`
+
+If `pytest.ini` does not exist at the repo root, create it:
+
+```ini
+[pytest]
+pythonpath = lambdas
+```
+
+This lets pytest find Lambda modules without `PYTHONPATH=lambdas`. Without it, CI fails with `ModuleNotFoundError`.
+
+## Step 7 — Create or update `tests/conftest.py`
+
+If `tests/conftest.py` does not exist, create it:
+
+```python
+import os
+import pytest
+
+@pytest.fixture(autouse=True, scope="session")
+def aws_credentials():
+    os.environ.setdefault("AWS_ACCESS_KEY_ID", "testing")
+    os.environ.setdefault("AWS_SECRET_ACCESS_KEY", "testing")
+    os.environ.setdefault("AWS_SECURITY_TOKEN", "testing")
+    os.environ.setdefault("AWS_SESSION_TOKEN", "testing")
+    os.environ.setdefault("AWS_DEFAULT_REGION", "eu-central-1")
+```
+
+Note: this fixture does **not** set `TABLE_NAME` or region early enough for module-level code. Region must be explicit in the Lambda (Step 5). `TABLE_NAME` must be set in the test file itself (Step 8).
+
+## Step 8 — Write pytest tests
+
+Create `tests/test_<function_name>.py`. Check existing test files for style.
+
+**Critical ordering** — set `TABLE_NAME` before importing the Lambda module:
+
+```python
+import os
+os.environ["TABLE_NAME"] = "test-table"
+
+import <function_name>  # noqa: E402
+```
+
+**DynamoDB fixture** — use `mock_aws`, create the table, then replace the module-level table reference:
+
+```python
+from moto import mock_aws
+
+@pytest.fixture
+def dynamodb_table():
+    with mock_aws():
+        ddb = boto3.resource("dynamodb", region_name="eu-central-1")
+        table = ddb.create_table(
+            TableName="test-table",
+            KeySchema=[
+                {"AttributeName": "session_id", "KeyType": "HASH"},
+                {"AttributeName": "question_id", "KeyType": "RANGE"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "session_id", "AttributeType": "S"},
+                {"AttributeName": "question_id", "AttributeType": "S"},
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        <function_name>.table = table  # replace module-level reference
+        yield table
+```
+
+**Bedrock mocking** — do NOT use moto for Bedrock. Use `unittest.mock.patch.object` on the module's bedrock client:
+
+```python
+from unittest.mock import MagicMock, patch
+
+def bedrock_response_for(data):
+    body_bytes = json.dumps({"content": [{"type": "text", "text": json.dumps(data)}]}).encode()
+    mock_body = MagicMock()
+    mock_body.read.return_value = body_bytes
+    return {"body": mock_body}
+
+def test_something(dynamodb_table):
+    with patch.object(<function_name>.bedrock, "invoke_model", return_value=bedrock_response_for(FAKE_DATA)):
+        response = <function_name>.lambda_handler(event, {})
+    assert response["statusCode"] == 200
+```
+
+**DynamoDB read-back** — boto3 resource returns `Decimal` for numbers; cast when asserting:
+```python
+assert int(item["feedback_every_n"]) == 3
+```
+
+Test coverage to aim for:
+- Happy path: 200 + correct DynamoDB items written + correct response shape
+- Each required field missing → 400
+- Invalid JSON body → 400
+- Claude returns invalid JSON → 502
+
+## Step 9 — Run tests locally
 
 ```bash
 pytest tests/test_<function_name>.py -v
 ```
 
-Fix any failures before continuing.
+Fix all failures before continuing.
 
-Also confirm SAM can parse the template (no Docker needed for validation):
+Also validate the SAM template if it exists:
 ```bash
 sam validate --template template.yaml
 ```
 
-If SAM CLI is not installed, note this in the PR description so the user can install it.
+## Step 10 — Create or update `requirements-dev.txt`
 
-## Step 9 — Create or update `.github/workflows/test-lambdas.yml`
+Ensure it contains:
+```
+boto3>=1.34.0
+moto[dynamodb]>=5.0.0
+pytest>=8.0.0
+```
 
-If the file does not exist, create it. If it exists, add the new function's test to it.
+Only add `moto[bedrock]` if you are actually using moto to mock Bedrock (we use `unittest.mock` instead, so it is not needed).
+
+## Step 11 — Create or update `.github/workflows/test-lambdas.yml`
+
+If it does not exist, create it:
 
 ```yaml
 name: Test Lambdas
@@ -155,55 +241,94 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-
       - name: Install dependencies
-        run: |
-          pip install -r requirements-dev.txt
-
+        run: pip install -r requirements-dev.txt
       - name: Run Lambda tests
-        run: |
-          pytest tests/ -v
+        run: pytest tests/ -v
 ```
 
-Check that `requirements-dev.txt` includes `pytest`, `moto[dynamodb]`, `moto[bedrock]`, and `boto3`. Add any missing packages.
+## Step 12 — Add Terraform infra changes
 
-## Step 10 — Commit and push
+On the same branch, commit the Terraform changes needed to deploy the Lambda.
 
-Stage only relevant files (Lambda source, tests, template.yaml, workflow, requirements):
+**`infra/modules/lambdas/main.tf`** — add archive + function:
+```hcl
+data "archive_file" "<name>_lambda" {
+  type        = "zip"
+  source_file = "../../../lambdas/<file>.py"
+  output_path = "<file>.zip"
+}
+
+resource "aws_lambda_function" "<name>_lambda" {
+  filename         = "<file>.zip"
+  function_name    = "${var.project_name}-${var.environment}-lambda-<name>"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "<file>.lambda_handler"
+  timeout          = 30
+  source_code_hash = data.archive_file.<name>_lambda.output_base64sha256
+  runtime          = "python3.11"
+
+  environment {
+    variables = {
+      TABLE_NAME = var.dynamodb_table_name
+    }
+  }
+  tags = merge(var.common_tags, { Name = "${var.project_name}-${var.environment}-lambda-<name>" })
+}
+```
+
+**`infra/modules/lambdas/outputs.tf`** — add outputs:
+```hcl
+output "<name>_lambda_name" {
+  value = aws_lambda_function.<name>_lambda.function_name
+}
+output "<name>_lambda_invoke_arn" {
+  value = aws_lambda_function.<name>_lambda.invoke_arn
+}
+```
+
+**`infra/environments/dev/main.tf` and `prod/main.tf`** — add route to the `api_gateway` lambdas list:
+```hcl
+{
+  name       = module.lambdas.<name>_lambda_name
+  invoke_arn = module.lambdas.<name>_lambda_invoke_arn
+  route_key  = "POST /<route>"
+}
+```
+
+No IAM changes needed — the shared Lambda execution role already has DynamoDB and Bedrock policies.
+
+Commit the Terraform changes as a separate commit on the same branch:
 ```bash
-git add lambdas/<file>.py tests/test_<file>.py template.yaml .github/workflows/test-lambdas.yml requirements-dev.txt
-git commit -m "<Verb> <specific subject> [reason if helpful]"
-git push -u origin <branch-name>
+git add infra/
+git commit -m "Add <name> Lambda and POST /<route> route to API Gateway"
 ```
 
-Commit message rules (from CLAUDE.md):
-- Imperative mood, sentence case, no period
-- Name the exact resource: e.g. `Add createSession Lambda for exercise generation`
-
-If any context files (CLAUDE.md, docs/, .claude/commands/) need updating as a result of this work, add them as a separate commit on the same branch.
-
-## Step 11 — Open a PR
-
-Use the `## Change` format (no `## Problem` for pure features). Include `Closes #$ARGUMENTS` in the body so GitHub auto-closes the issue on merge:
+## Step 13 — Open a PR
 
 ```bash
 gh pr create \
-  --title "<title matching commit message style>" \
+  --title "Add <FunctionName> Lambda for <purpose>" \
   --body "$(cat <<'EOF'
 ## Change
-- <bullet points naming specific files changed>
+- `lambdas/<file>.py` — <what it does>
+- `tests/test_<file>.py` — <N> pytest tests covering <what>
+- `pytest.ini`, `tests/conftest.py`, `requirements-dev.txt`, `.github/workflows/test-lambdas.yml` — test infrastructure (if new)
+- `infra/modules/lambdas/main.tf` — new Lambda resource
+- `infra/modules/lambdas/outputs.tf` — name and invoke_arn outputs
+- `infra/environments/dev/main.tf`, `infra/environments/prod/main.tf` — POST /<route> route added
+
+Opening this PR triggers a Terraform Cloud plan run for dev and prod workspaces.
 
 ## Test plan
-- [ ] pytest passes locally
-- [ ] SAM template validates (`sam validate`)
+- [x] pytest passes locally
+- [x] SAM template validates
 - [ ] GitHub Actions test workflow runs on this PR
 
 Closes #$ARGUMENTS
@@ -213,9 +338,8 @@ EOF
 )"
 ```
 
-## Step 12 — Update the GitHub issue
+## Step 14 — Update the GitHub issue
 
-Comment the PR URL on the issue and confirm the `in-progress` label is set:
 ```bash
 gh issue comment $ARGUMENTS --body "<pr-url>"
 gh issue edit $ARGUMENTS --add-label "in-progress"
