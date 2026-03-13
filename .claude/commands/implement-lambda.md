@@ -2,15 +2,27 @@
 
 Implement a Lambda function task end-to-end from a GitHub issue.
 
-**Issue number:** $ARGUMENTS
+**Argument:** $ARGUMENTS — either an issue number (`26`) or a description (`to create a session`).
 
 ---
 
-## Step 1 — Fetch the GitHub issue
+## Step 1 — Resolve and fetch the GitHub issue
 
+If `$ARGUMENTS` is a number, use it directly:
 ```bash
 gh issue view $ARGUMENTS
 ```
+
+If `$ARGUMENTS` is a description, search for the matching issue first:
+```bash
+gh issue list --state open --limit 50
+```
+Find the issue whose title best matches the description, note its number, then fetch it:
+```bash
+gh issue view <number>
+```
+
+Use that issue number for all subsequent steps in place of `$ARGUMENTS`.
 
 Extract: title, body. This is your full spec.
 
