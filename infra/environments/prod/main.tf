@@ -19,11 +19,13 @@ module "dynamodb" {
 module "lambdas" {
   source = "../../modules/lambdas"
 
-  account_id   = var.account_id
-  environment  = var.environment
-  region       = var.region
-  project_name = var.project_name
-  common_tags  = local.common_tags
+  account_id          = var.account_id
+  environment         = var.environment
+  region              = var.region
+  project_name        = var.project_name
+  common_tags         = local.common_tags
+  dynamodb_table_name = module.dynamodb.table_name
+  dynamodb_table_arn  = module.dynamodb.table_arn
 }
 
 module "api_gateway" {

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A serverless AI-powered language learning app focused on grammar. Users request exercises via a chat interface; Claude Sonnet 4.5 (AWS Bedrock) generates exercises and feedback.
 
-- **Current iteration (v1):** single-user, basic exercise flow — see @docs/basic-scenario.md
+- **Current iteration (v1):** single-user, basic exercise flow — see @docs/basic_scenario.md
 - **Long-term vision:** user accounts, study history, per-topic statistics and success rates
 - **Project planning:** GitHub Issues + @docs/implementation_plan.md — repo: https://github.com/sofia-kalinina/useyourai
 
@@ -35,7 +35,7 @@ Two Lambda functions (Python 3.11, region `eu-central-1`):
 - `init_session.py` — creates a session in DynamoDB with 24h TTL, returns `session_id`
 - `test_bedrock.py` — takes user prompt + session context, calls Claude via Bedrock, returns AI response
 
-DynamoDB table: `LanguageLearningTable-{environment}` (composite key: `session_id` + `question_id`). Lambda env var `ENVIRONMENT` selects the correct table.
+DynamoDB table: `{project_name}-{environment}-table-language-learning` (composite key: `session_id` + `question_id`). The table name is passed to Lambda via the `TABLE_NAME` env var, sourced from the DynamoDB Terraform module output.
 
 ### API Gateway
 - `POST /init` → init_session
@@ -86,6 +86,7 @@ pytest                    # Run Python tests from root
 - Always work on a branch — never commit directly to `main`
 - Branch naming: `feature/<kebab-case-description>` for new work, `fix/<kebab-case-description>` for bug fixes
 - After pushing, always open a PR — this triggers a Terraform Cloud plan run automatically
+- After opening a PR, comment the PR link on the related GitHub issue
 - Commit messages: imperative mood, sentence case, no period — `<Verb> <specific subject> [to/for/from <context>]`
   - Name the exact resource/module (`API Gateway CORS`, `Route53 CNAME record`, `CloudFront TLS policy`)
   - Include the reason/effect when it adds clarity (`to allow CORS requests from dev.useyourai.eu`)

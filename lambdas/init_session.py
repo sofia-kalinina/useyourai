@@ -5,13 +5,13 @@ import time
 import os
 
 # Get environment variables
-environment = os.getenv('ENVIRONMENT')
-if environment is None:
-    raise ValueError("Environment variable 'ENVIRONMENT' is not set.")
+table_name = os.getenv('TABLE_NAME')
+if table_name is None:
+    raise ValueError("Environment variable 'TABLE_NAME' is not set.")
 
 # Initialize DynamoDB
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table(f"LanguageLearningTable-{environment}")
+table = dynamodb.Table(table_name)
 
 def lambda_handler(event, context):
     """Creates a new session when a user enters the app."""
