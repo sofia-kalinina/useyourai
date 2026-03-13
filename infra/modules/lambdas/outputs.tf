@@ -1,3 +1,11 @@
+output "create_session_lambda_name" {
+  value = aws_lambda_function.create_session_lambda.function_name
+}
+
+output "create_session_lambda_invoke_arn" {
+  value = aws_lambda_function.create_session_lambda.invoke_arn
+}
+
 output "init_session_lambda_name" {
   value = aws_lambda_function.init_session_lambda.function_name
 
