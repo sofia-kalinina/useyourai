@@ -31,15 +31,17 @@ All tool versions must be pinned and up-to-date. Prefer tools with strong commun
 2. React app → API Gateway (HTTP) → Lambda → DynamoDB / Bedrock
 
 ### Backend (lambdas/)
-Two Lambda functions (Python 3.11, region `eu-central-1`):
-- `init_session.py` — creates a session in DynamoDB with 24h TTL, returns `session_id`
-- `test_bedrock.py` — takes user prompt + session context, calls Claude via Bedrock, returns AI response
+Three Lambda functions (Python 3.11, region `eu-central-1`):
+- `create_session.py` — receives `{ prompt, feedback_every_n }`, calls Claude via Bedrock to generate structured exercises, persists session metadata + all exercises to DynamoDB, returns `session_id` + first exercise
+- `init_session.py` — placeholder, pre-plan (to be removed)
+- `test_bedrock.py` — placeholder, pre-plan (to be removed)
 
-DynamoDB table: `{project_name}-{environment}-table-language-learning` (composite key: `session_id` + `question_id`). The table name is passed to Lambda via the `TABLE_NAME` env var, sourced from the DynamoDB Terraform module output.
+DynamoDB table: `{project_name}-{environment}-table-language-learning` (composite key: `session_id` + `question_id`). The table name is passed to Lambda via the `TABLE_NAME` env var, sourced from the DynamoDB Terraform module output. See @docs/dynamodb_schema.md for item structure.
 
 ### API Gateway
-- `POST /init` → init_session
-- `POST /test` → test_bedrock
+- `POST /session` → create_session
+- `POST /init` → init_session (placeholder)
+- `POST /test` → test_bedrock (placeholder)
 
 CORS allows the CloudFront URL and custom domain. Domain is passed as a variable to the API Gateway module so CORS origins stay in sync.
 
