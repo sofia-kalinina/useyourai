@@ -12,6 +12,7 @@ const Chat = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -36,11 +37,13 @@ const Chat = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/test`, {
+      const response = await axios.post(`${API_URL}/session`, {
         prompt: input,
+        feedback_every_n: 3,
       });
 
-      const systemMessage = { text: response.data.reply, sender: 'system' };
+      setSessionId(response.data.session_id);
+      const systemMessage = { text: response.data.exercise.question, sender: 'system' };
       setMessages((prevMessages) => [...prevMessages, systemMessage]);
     } catch (error) {
       console.error('Error fetching response:', error);
