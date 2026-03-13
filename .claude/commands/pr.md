@@ -8,11 +8,14 @@ Run in parallel:
 - `git diff --cached` — full diff of staged changes
 - `git log main..HEAD --oneline` — commits already on this branch (if any)
 
-## Step 2 — Create branch (if not already on a feature/fix branch)
+## Step 2 — Verify or create branch
 
-If currently on `main` or another base branch, ask the user for a branch name or propose one based on the changes.
+If on `main`: always create a new branch before committing.
+
+If on a feature/fix branch: check whether the branch name matches the changes being committed. If the current branch name describes different work (e.g. you're on `feature/update-claude-context` but the diff is a DynamoDB fix), create a new branch from `main` instead — do not reuse the existing branch.
+
 Branch naming: `feature/<kebab-case-description>` or `fix/<kebab-case-description>`.
-Run: `git checkout -b <branch-name>`
+Run: `git checkout main && git pull origin main && git checkout -b <branch-name>`
 
 ## Step 3 — Commit the changes
 
@@ -66,3 +69,8 @@ Draft the PR using the structure below, then run `gh pr create`.
 - If the branch contains only Terraform changes, note that a TFC plan run was triggered by opening this PR
 - Omit Problem for pure features with no prior bug
 - **Test plan:** only include if there is something concretely verifiable before merge — e.g. a unit test that can be run locally, a specific curl command, a visual check in a dev environment. Do not include a test plan for changes that can only be verified after deploying to production (most infra, CI/CD, and config changes fall into this category)
+
+## Step 6 — Link the PR to the GitHub issue
+
+Run `gh issue list` to find the related issue. Post a comment on it linking the PR:
+`gh issue comment <number> --body "PR #<pr-number> opens for this: <pr-url>"`
