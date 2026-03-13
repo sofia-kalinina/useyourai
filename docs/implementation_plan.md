@@ -92,15 +92,15 @@ One table, two item types (composite key: `session_id` PK + `question_id` SK):
 
 ## Sprint Plan
 
-### Sprint 1 — Foundation
-1. Fix DynamoDB table name mismatch (Lambda code + IAM policy)
-2. Implement DynamoDB schema (session + exercise item types)
-3. Implement `createSessionLambda` (`POST /session`)
-4. Update API Gateway routes
+### Sprint 1 — Foundation ✅
+1. ✅ Fix DynamoDB table name mismatch (Lambda code + IAM policy)
+2. ✅ Implement DynamoDB schema (session + exercise item types)
+3. ✅ Implement `createSessionLambda` (`POST /session`)
+4. ✅ Update API Gateway routes
 
 ### Sprint 2 — Core Loop
 5. Implement `submitAnswerLambda` (`POST /session/{id}/answer`) with inline evaluation
-6. Update frontend for session-based API flow
+6. ✅ Update frontend to call `POST /session` and display first exercise
 7. Integration test: full practice cycle end-to-end
 
 ### Sprint 3 — Retry & Hardening

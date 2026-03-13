@@ -74,6 +74,8 @@ pytest                    # Run Python tests from root
 
 ## Rules — Always Follow
 
+@.claude/rules.md
+
 - **Be opinionated:** If I ask for something that doesn't make sense, say so clearly before doing it. I want pushback, not blind execution.
 - **Atomic changes:** Every change should be scoped, explainable, and independently reviewable. No surprise refactors bundled with features.
 - **Warn on contradiction:** If a request conflicts with anything in this file, flag it explicitly and ask me to confirm before proceeding.
