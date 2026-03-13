@@ -33,7 +33,7 @@ git checkout -b <branch-name>
 
 Before writing anything, read the existing Lambda files in `lambdas/` to understand:
 - Code structure and style
-- How DynamoDB is initialised (module-level, using `ENVIRONMENT` env var)
+- How DynamoDB is initialised (module-level, using `TABLE_NAME` env var sourced from Terraform)
 - How Bedrock is called
 - Response shape (`statusCode` + JSON `body`)
 
@@ -44,7 +44,7 @@ Also read `docs/implementation_plan.md` if it exists.
 Create or update the relevant file in `lambdas/`. Follow the patterns from existing Lambdas:
 - Python 3.11
 - `lambda_handler(event, context)` entry point
-- Read `ENVIRONMENT` from `os.getenv('ENVIRONMENT')` for DynamoDB table name: `LanguageLearningTable-{environment}`
+- Read table name from `os.getenv('TABLE_NAME')` — injected by Terraform at deploy time
 - Return `{"statusCode": <int>, "body": json.dumps({...})}`
 - Parse request body with `json.loads(event.get('body'))`
 - Validate inputs and return 400 for bad requests
@@ -68,7 +68,7 @@ Globals:
     Timeout: 30
     Environment:
       Variables:
-        ENVIRONMENT: dev
+        TABLE_NAME: !Sub "${AWS::StackName}-table-language-learning"
 
 Resources:
   InitSessionFunction:
@@ -79,7 +79,7 @@ Resources:
       Handler: init_session.lambda_handler
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Sub "LanguageLearningTable-${Globals.Function.Environment.Variables.ENVIRONMENT}"
+            TableName: !Sub "${AWS::StackName}-table-language-learning"
       Events:
         Api:
           Type: Api
@@ -118,7 +118,7 @@ Test structure guidelines:
 - For functions that call Bedrock: mock `bedrock-runtime` with `moto`, or patch `boto3.client` to return a fake response; assert the reply is returned in the response body
 - For validation logic: test missing/malformed body returns `statusCode: 400`
 - Use `@pytest.fixture` for repeated setup (e.g. mocked DynamoDB table)
-- Set `ENVIRONMENT=test` in the test environment
+- Set `TABLE_NAME=test-table` in the test environment
 
 Check `tests/` for existing test files and follow their style.
 
@@ -186,16 +186,20 @@ git push -u origin <branch-name>
 
 Commit message rules (from CLAUDE.md):
 - Imperative mood, sentence case, no period
-- Name the exact resource: e.g. `Add submitAnswer Lambda for exercise evaluation`
+- Name the exact resource: e.g. `Add createSession Lambda for exercise generation`
+
+If any context files (CLAUDE.md, docs/, .claude/commands/) need updating as a result of this work, add them as a separate commit on the same branch.
 
 ## Step 11 — Open a PR
 
+Use the `## Change` format (no `## Problem` for pure features). Include `Closes #$ARGUMENTS` in the body so GitHub auto-closes the issue on merge:
+
 ```bash
 gh pr create \
-  --title "<card name>" \
+  --title "<title matching commit message style>" \
   --body "$(cat <<'EOF'
-## Summary
-- <bullet points from card description/checklist>
+## Change
+- <bullet points naming specific files changed>
 
 ## Test plan
 - [ ] pytest passes locally
@@ -209,10 +213,12 @@ EOF
 )"
 ```
 
-## Step 12 — Close the issue
+## Step 12 — Update the GitHub issue
 
+Comment the PR URL on the issue and confirm the `in-progress` label is set:
 ```bash
-gh issue close $ARGUMENTS --comment "Implemented in <PR URL>"
+gh issue comment $ARGUMENTS --body "<pr-url>"
+gh issue edit $ARGUMENTS --add-label "in-progress"
 ```
 
 Return the PR URL to the user.
