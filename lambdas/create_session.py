@@ -62,18 +62,29 @@ def lambda_handler(event, context):
             })
         )
     except ClientError as e:
+        error_code = e.response["Error"]["Code"]
+        print(f"[create_session] Bedrock invocation failed: {error_code} — {e.response['Error']['Message']}")
         return {"statusCode": 502, "body": json.dumps({"error": "Failed to call Claude", "detail": str(e)})}
 
     model_output = json.loads(bedrock_response["body"].read())
     raw_text = model_output["content"][0]["text"]
 
+    # Strip markdown code fences if Claude wrapped the JSON
+    stripped = raw_text.strip()
+    if stripped.startswith("```"):
+        print("[create_session] Claude wrapped response in markdown fences — stripping")
+        stripped = stripped.split("\n", 1)[-1]
+        stripped = stripped.rsplit("```", 1)[0].strip()
+
     try:
-        exercise_data = json.loads(raw_text)
+        exercise_data = json.loads(stripped)
     except (json.JSONDecodeError, ValueError):
+        print(f"[create_session] Failed to parse Claude response as JSON. First 300 chars: {raw_text[:300]!r}")
         return {"statusCode": 502, "body": json.dumps({"error": "Claude returned invalid JSON"})}
 
     exercises = exercise_data.get("exercises", [])
     if not exercises:
+        print(f"[create_session] Claude returned no exercises. Keys in response: {list(exercise_data.keys())}")
         return {"statusCode": 502, "body": json.dumps({"error": "Claude returned no exercises"})}
 
     session_id = str(uuid.uuid4())
@@ -98,6 +109,7 @@ def lambda_handler(event, context):
                 "expected_answer": exercise["expected_answer"]
             })
 
+    print(f"[create_session] Session {session_id} created with {len(exercises)} exercises (topic: {exercise_data.get('topic', 'unknown')})")
     first_exercise = exercises[0]
     return {
         "statusCode": 200,
