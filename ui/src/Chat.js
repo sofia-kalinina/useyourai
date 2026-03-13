@@ -12,7 +12,6 @@ const Chat = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -42,7 +41,6 @@ const Chat = () => {
         feedback_every_n: 3,
       });
 
-      setSessionId(response.data.session_id);
       const systemMessage = { text: response.data.exercise.question, sender: 'system' };
       setMessages((prevMessages) => [...prevMessages, systemMessage]);
     } catch (error) {

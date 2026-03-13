@@ -317,6 +317,8 @@ Find the component that makes API calls (currently `ui/src/Chat.js`) and update 
 - Update the request payload to match the new Lambda's expected input
 - Update the response handling to match the new response shape
 
+**Do not store response fields in state unless they are actually used in the current implementation.** React CI builds treat unused variables as errors (`no-unused-vars`). Add state for future fields (e.g. `session_id`) only when the feature that needs them is being implemented.
+
 Commit as a separate commit on the same branch:
 ```bash
 git add ui/
