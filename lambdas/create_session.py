@@ -10,7 +10,7 @@ table_name = os.getenv('TABLE_NAME')
 if not table_name:
     raise ValueError("Environment variable 'TABLE_NAME' is not set.")
 
-dynamodb = boto3.resource('dynamodb')
+dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 table = dynamodb.Table(table_name)
 
 bedrock = boto3.client(service_name='bedrock-runtime', region_name='eu-central-1')
