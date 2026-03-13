@@ -38,7 +38,9 @@ resource "aws_iam_role_policy" "dynamodb_rw_access_policy" {
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
           "dynamodb:GetItem",
-          "dynamodb:DeleteItem"
+          "dynamodb:DeleteItem",
+          "dynamodb:BatchWriteItem",
+          "dynamodb:Query"
         ]
         Effect   = "Allow"
         Resource = var.dynamodb_table_arn
