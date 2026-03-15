@@ -99,7 +99,7 @@ One table, two item types (composite key: `session_id` PK + `question_id` SK):
 4. ✅ Update API Gateway routes
 
 ### Sprint 2 — Core Loop
-5. Implement `submitAnswerLambda` (`POST /session/{id}/answer`) with inline evaluation
+5. ✅ Implement `submitAnswerLambda` (`POST /session/{id}/answer`) with inline evaluation
 6. ✅ Update frontend to call `POST /session` and display first exercise
 7. Integration test: full practice cycle end-to-end
 
