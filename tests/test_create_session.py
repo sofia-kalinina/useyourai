@@ -111,6 +111,19 @@ def test_invalid_json_body_returns_400():
     assert response["statusCode"] == 400
 
 
+def test_prompt_too_long_returns_400():
+    long_prompt = "a" * 501
+    response = create_session.lambda_handler(make_event(prompt=long_prompt, feedback_every_n=3), {})
+    assert response["statusCode"] == 400
+
+
+def test_claude_malformed_exercise_schema_returns_502(dynamodb_table):
+    bad_data = {**FAKE_EXERCISE_DATA, "exercises": [{"id": "01"}]}  # missing question and expected_answer
+    with patch.object(create_session.bedrock, "invoke_model", return_value=bedrock_response_for(bad_data)):
+        response = create_session.lambda_handler(make_event("10 exercises", 3), {})
+    assert response["statusCode"] == 502
+
+
 def test_claude_invalid_json_returns_502(dynamodb_table):
     mock_body = MagicMock()
     mock_body.read.return_value = json.dumps({"content": [{"type": "text", "text": "not json at all"}]}).encode()

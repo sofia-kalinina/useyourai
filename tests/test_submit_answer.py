@@ -241,8 +241,24 @@ def test_exercise_not_found_returns_404(seeded_table):
 
 # --- Bedrock failure ---
 
+def test_answer_too_long_returns_400(seeded_table):
+    long_answer = "a" * 301
+    response = submit_answer.lambda_handler(make_event(exercise_id="01", answer=long_answer), {})
+    assert response["statusCode"] == 400
+
+
 def test_claude_invalid_eval_json_returns_502(seeded_table):
     body_bytes = json.dumps({"content": [{"type": "text", "text": "not json at all"}]}).encode()
+    mock_body = MagicMock()
+    mock_body.read.return_value = body_bytes
+    with patch.object(submit_answer.bedrock, "invoke_model", return_value={"body": mock_body}):
+        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="x"), {})
+    assert response["statusCode"] == 502
+
+
+def test_claude_non_boolean_is_correct_returns_502(seeded_table):
+    # Claude returns is_correct as a string instead of boolean
+    body_bytes = json.dumps({"content": [{"type": "text", "text": '{"is_correct": "true"}'}]}).encode()
     mock_body = MagicMock()
     mock_body.read.return_value = body_bytes
     with patch.object(submit_answer.bedrock, "invoke_model", return_value={"body": mock_body}):
