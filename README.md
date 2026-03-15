@@ -1,8 +1,5 @@
 # useyourai
 
-[![Deploy Frontend](https://img.shields.io/github/actions/workflow/status/sofia-kalinina/useyourai/deploy-frontend.yml?branch=main&label=deploy&style=flat-square)](https://github.com/sofia-kalinina/useyourai/actions/workflows/deploy-frontend.yml)
-[![Test Lambdas](https://img.shields.io/github/actions/workflow/status/sofia-kalinina/useyourai/test-lambdas.yml?branch=main&label=tests&style=flat-square)](https://github.com/sofia-kalinina/useyourai/actions/workflows/test-lambdas.yml)
-
 > AI-powered language grammar practice, on demand — no account required.
 
 `useyourai` is a serverless language learning app that generates personalized grammar exercises through a chat interface. Describe what you want to practice, get exercises one by one, and receive AI-generated feedback at configurable intervals. Built end-to-end on AWS with Claude Sonnet via Bedrock.
@@ -11,7 +8,7 @@ Live: [useyourai.eu](https://useyourai.eu) · Dev: [dev.useyourai.eu](https://de
 
 ## Features
 
-- **On-demand exercise generation** — describe a topic in plain text (e.g. *"10 sentences to practice German accusative case"*) and Claude generates a structured exercise set
+- **On-demand exercise generation** — describe a topic in plain text (e.g. _"10 sentences to practice German accusative case"_) and Claude generates a structured exercise set
 - **One-by-one practice** — exercises are presented individually; each answer is evaluated by Claude
 - **Configurable feedback** — set how often you receive textual feedback (e.g. every 3 answers)
 - **Retry mistakes** — after completing a session, get a new targeted exercise set focused on what you got wrong
@@ -29,16 +26,16 @@ Browser (React)
                 └─▶ DynamoDB
 ```
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18, Axios |
-| Backend | AWS Lambda (Python 3.11) |
-| AI | AWS Bedrock — Claude Sonnet 4.5 (`eu-central-1`) |
-| Database | DynamoDB (on-demand, TTL-based cleanup) |
-| API | AWS API Gateway (HTTP) |
-| CDN | CloudFront + S3 |
-| IaC | Terraform + Terraform Cloud |
-| CI/CD | GitHub Actions (OIDC, no long-lived credentials) |
+| Layer    | Technology                                       |
+| -------- | ------------------------------------------------ |
+| Frontend | React 18, Axios                                  |
+| Backend  | AWS Lambda (Python 3.11)                         |
+| AI       | AWS Bedrock — Claude Sonnet 4.5 (`eu-central-1`) |
+| Database | DynamoDB (on-demand, TTL-based cleanup)          |
+| API      | AWS API Gateway (HTTP)                           |
+| CDN      | CloudFront + S3                                  |
+| IaC      | Terraform + Terraform Cloud                      |
+| CI/CD    | GitHub Actions (OIDC, no long-lived credentials) |
 
 ## Project Structure
 
@@ -90,11 +87,11 @@ Infrastructure is managed by **Terraform Cloud** — do not run `terraform apply
 
 ## How It Works
 
-1. **Start a session** — type a prompt like *"Give me 5 exercises on French past tense"*. The app calls `POST /session`, which asks Claude to generate structured exercises, stores them in DynamoDB, and returns the first one.
+1. **Start a session** — type a prompt like _"Give me 5 exercises on French past tense"_. The app calls `POST /session`, which asks Claude to generate structured exercises, stores them in DynamoDB, and returns the first one.
 
 2. **Answer exercises** — each answer is submitted to `POST /session/{id}/answer`. Claude evaluates correctness, and textual feedback is generated every N answers (configurable per session).
 
-3. **Retry mistakes** — when the session ends, the app shows how many answers were wrong and offers to start a focused retry session. *(Coming in Sprint 3)*
+3. **Retry mistakes** — when the session ends, the app shows how many answers were wrong and offers to start a focused retry session. _(Coming in Sprint 3)_
 
 ## Roadmap
 
