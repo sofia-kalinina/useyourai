@@ -8,12 +8,14 @@ const Chat = () => {
   const API_URL = window.ENV?.API_URL;
 
   const [messages, setMessages] = useState([
-    { text: 'Welcome to useyourai! Ask for a set of exercises on any language topic — for example, "Give me 10 German accusative case exercises". You can also specify how often you want feedback, e.g. "...and show me results every 3 answers".', sender: 'system' },
+    { text: 'Welcome to useyourai! Ask for a set of exercises on any language topic — for example, "Give me 10 German accusative case exercises".', sender: 'system' },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [currentExerciseId, setCurrentExerciseId] = useState(null);
+  const [level, setLevel] = useState('A2');
+  const [feedbackMode, setFeedbackMode] = useState('at_end');
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -33,13 +35,11 @@ const Chat = () => {
     setMessages((prev) => [...prev, { text, sender }]);
 
   const handleNewSession = async (prompt) => {
-    const match = prompt.match(/every\s+(\d+)/i);
-    const feedback_every_n = match ? parseInt(match[1], 10) : 3;
-
     try {
       const response = await axios.post(`${API_URL}/session`, {
         prompt,
-        feedback_every_n,
+        level,
+        feedback_mode: feedbackMode,
       });
       const { session_id, exercise } = response.data;
       setSessionId(session_id);
@@ -119,6 +119,25 @@ const Chat = () => {
         )}
         <div ref={messagesEndRef} />
       </div>
+      {!sessionId && (
+        <div className="settings-row">
+          <label>
+            Level
+            <select value={level} onChange={(e) => setLevel(e.target.value)} disabled={isLoading}>
+              {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Feedback
+            <select value={feedbackMode} onChange={(e) => setFeedbackMode(e.target.value)} disabled={isLoading}>
+              <option value="after_each">After each answer</option>
+              <option value="at_end">At the end</option>
+            </select>
+          </label>
+        </div>
+      )}
       <div className="input-area">
         <input
           type="text"
