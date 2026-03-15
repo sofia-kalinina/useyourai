@@ -12,6 +12,7 @@ on:
 env:
   AWS_REGION: eu-central-1
   TFC_WORKSPACE: ws-FRPCL1cuSBwuiLzS
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 # Required for OIDC
 permissions:
