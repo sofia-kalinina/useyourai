@@ -2,13 +2,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import Message from './Message';
+import translations from './translations';
 import './Chat.css';
 
 const Chat = () => {
   const API_URL = window.ENV?.API_URL;
 
+  const [lang, setLang] = useState('en');
+  const tr = translations[lang];
+
   const [messages, setMessages] = useState([
-    { text: 'Welcome to useyourai! Ask for a set of exercises on any language topic — for example, "Give me 10 German accusative case exercises".', sender: 'system' },
+    { text: translations.en.welcome, sender: 'system' },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +34,14 @@ const Chat = () => {
     }
   }, [isLoading]);
 
+  // Update the welcome message text when language changes
+  useEffect(() => {
+    setMessages((prev) => [
+      { text: tr.welcome, sender: 'system' },
+      ...prev.slice(1),
+    ]);
+  }, [lang]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!API_URL) {
     return (
       <div className="chat-container config-error">
@@ -48,6 +60,7 @@ const Chat = () => {
         prompt,
         level,
         feedback_mode: feedbackMode,
+        lang,
       });
       const { session_id, exercise } = response.data;
       setSessionId(session_id);
@@ -56,7 +69,7 @@ const Chat = () => {
       addMessage(exercise.question, 'system');
     } catch (error) {
       console.error('Error creating session:', error);
-      addMessage('Sorry, something went wrong. Please try again.', 'system');
+      addMessage(tr.error, 'system');
     }
   };
 
@@ -69,7 +82,7 @@ const Chat = () => {
       const { is_correct, feedback, next_exercise, mistakes } = response.data;
 
       if (feedbackMode === 'each') {
-        addMessage(is_correct ? 'Correct!' : 'Incorrect.', 'system');
+        addMessage(is_correct ? tr.correct : tr.incorrect, 'system');
       }
 
       if (next_exercise) {
@@ -81,16 +94,16 @@ const Chat = () => {
         const total = answersSubmitted + 1;
         const mistakeCount = mistakes ? mistakes.length : 0;
         const correct = total - mistakeCount;
-        addMessage(`Session complete! Score: ${correct}/${total}.`, 'system');
+        addMessage(tr.sessionComplete(correct, total), 'system');
         if (feedback) addMessage(feedback, 'system');
-        addMessage('Start a new session to continue practising.', 'system');
+        addMessage(tr.startNew, 'system');
         setSessionId(null);
         setCurrentExerciseId(null);
         setAnswersSubmitted(0);
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
-      addMessage('Sorry, something went wrong. Please try again.', 'system');
+      addMessage(tr.error, 'system');
     }
   };
 
@@ -141,14 +154,28 @@ const Chat = () => {
                       onClick={() => setFeedbackMode('each')}
                       disabled={isLoading}
                     >
-                      After each
+                      {tr.afterEach}
                     </button>
                     <button
                       className={`pill${feedbackMode === 'end' ? ' pill--active' : ''}`}
                       onClick={() => setFeedbackMode('end')}
                       disabled={isLoading}
                     >
-                      At the end
+                      {tr.atTheEnd}
+                    </button>
+                  </div>
+                  <div className="pill-group">
+                    <button
+                      className={`pill${lang === 'en' ? ' pill--active' : ''}`}
+                      onClick={() => setLang('en')}
+                    >
+                      EN
+                    </button>
+                    <button
+                      className={`pill${lang === 'uk' ? ' pill--active' : ''}`}
+                      onClick={() => setLang('uk')}
+                    >
+                      UK
                     </button>
                   </div>
                 </div>
@@ -172,7 +199,7 @@ const Chat = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-          placeholder={sessionId ? 'Type your answer...' : "Ask for exercises, e.g. 'Give me 5 German adjective exercises'"}
+          placeholder={sessionId ? tr.placeholderAnswer : tr.placeholderPrompt}
           disabled={isLoading}
           autoFocus
           ref={inputRef}

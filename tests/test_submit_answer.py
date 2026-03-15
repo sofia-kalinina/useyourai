@@ -67,7 +67,7 @@ def dynamodb_table():
         yield table
 
 
-def seed_session(dynamodb_table, feedback_mode="end"):
+def seed_session(dynamodb_table, feedback_mode="end", lang="en"):
     dynamodb_table.put_item(Item={
         "session_id": SESSION_ID,
         "question_id": "SESSION",
@@ -76,6 +76,7 @@ def seed_session(dynamodb_table, feedback_mode="end"):
         "language": "German",
         "level": "B1",
         "feedback_mode": feedback_mode,
+        "lang": lang,
         "status": "active",
         "ttl": 9999999999,
     })
@@ -99,6 +100,12 @@ def seeded_table(dynamodb_table):
 def seeded_table_each(dynamodb_table):
     """Table pre-populated with feedback_mode='each'."""
     return seed_session(dynamodb_table, feedback_mode="each")
+
+
+@pytest.fixture
+def seeded_table_uk(dynamodb_table):
+    """Table pre-populated with lang='uk' and feedback_mode='each'."""
+    return seed_session(dynamodb_table, feedback_mode="each", lang="uk")
 
 
 # --- Happy path ---
@@ -306,3 +313,24 @@ def test_claude_non_boolean_is_correct_returns_502(seeded_table):
     with patch.object(submit_answer.bedrock, "invoke_model", return_value={"body": mock_body}):
         response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="x"), {})
     assert response["statusCode"] == 502
+
+
+# --- Ukrainian language ---
+
+def test_lang_uk_includes_language_instruction_in_feedback_prompt(seeded_table_uk):
+    """When lang='uk', the feedback prompt sent to Claude must contain the Ukrainian instruction."""
+    captured_calls = []
+
+    def invoke_model(**kwargs):
+        captured_calls.append(kwargs)
+        r = bedrock_eval_response(True) if len(captured_calls) == 1 else bedrock_feedback_response("Чудова робота!")
+        return r
+
+    with patch.object(submit_answer.bedrock, "invoke_model", side_effect=invoke_model):
+        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
+
+    assert response["statusCode"] == 200
+    # Second call is the feedback call — its body must contain the Ukrainian instruction
+    feedback_call_body = json.loads(captured_calls[1]["body"])
+    feedback_prompt = feedback_call_body["messages"][0]["content"][0]["text"]
+    assert "Ukrainian" in feedback_prompt
