@@ -14,6 +14,7 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [currentExerciseId, setCurrentExerciseId] = useState(null);
+  const [answersSubmitted, setAnswersSubmitted] = useState(0);
   const [level, setLevel] = useState('A2');
   const [feedbackMode, setFeedbackMode] = useState('end');
   const messagesEndRef = useRef(null);
@@ -43,6 +44,7 @@ const Chat = () => {
       });
       const { session_id, exercise } = response.data;
       setSessionId(session_id);
+      setAnswersSubmitted(0);
       setCurrentExerciseId(exercise.id);
       addMessage(exercise.question, 'system');
     } catch (error) {
@@ -59,25 +61,25 @@ const Chat = () => {
       });
       const { is_correct, feedback, next_exercise, mistakes } = response.data;
 
-      addMessage(is_correct ? 'Correct!' : 'Incorrect.', 'system');
-
-      if (feedback) {
-        addMessage(feedback, 'system');
+      if (feedbackMode === 'each') {
+        addMessage(is_correct ? 'Correct!' : 'Incorrect.', 'system');
       }
 
       if (next_exercise) {
+        if (feedback) addMessage(feedback, 'system');
+        setAnswersSubmitted(prev => prev + 1);
         setCurrentExerciseId(next_exercise.id);
         addMessage(next_exercise.question, 'system');
       } else {
+        const total = answersSubmitted + 1;
         const mistakeCount = mistakes ? mistakes.length : 0;
-        addMessage(
-          mistakeCount > 0
-            ? `Session complete! You had ${mistakeCount} mistake(s). Start a new session to continue practising.`
-            : 'Session complete! Great job — no mistakes!',
-          'system'
-        );
+        const correct = total - mistakeCount;
+        addMessage(`Session complete! Score: ${correct}/${total}.`, 'system');
+        if (feedback) addMessage(feedback, 'system');
+        addMessage('Start a new session to continue practising.', 'system');
         setSessionId(null);
         setCurrentExerciseId(null);
+        setAnswersSubmitted(0);
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
