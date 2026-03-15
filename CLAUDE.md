@@ -31,8 +31,9 @@ All tool versions must be pinned and up-to-date. Prefer tools with strong commun
 2. React app → API Gateway (HTTP) → Lambda → DynamoDB / Bedrock
 
 ### Backend (lambdas/)
-Three Lambda functions (Python 3.11, region `eu-central-1`):
+Lambda functions (Python 3.11, region `eu-central-1`):
 - `create_session.py` — receives `{ prompt, feedback_every_n }`, calls Claude via Bedrock to generate structured exercises, persists session metadata + all exercises to DynamoDB, returns `session_id` + first exercise
+- `submit_answer.py` — receives `{ exercise_id, answer }` via `POST /session/{id}/answer`, evaluates the answer with Claude, saves result to DynamoDB, generates textual feedback every N answers, returns `is_correct` + optional `feedback` + `next_exercise` (null when session complete, also returns `mistakes`)
 - `init_session.py` — placeholder, pre-plan (to be removed)
 - `test_bedrock.py` — placeholder, pre-plan (to be removed)
 
@@ -40,6 +41,7 @@ DynamoDB table: `{project_name}-{environment}-table-language-learning` (composit
 
 ### API Gateway
 - `POST /session` → create_session
+- `POST /session/{id}/answer` → submit_answer
 - `POST /init` → init_session (placeholder)
 - `POST /test` → test_bedrock (placeholder)
 
