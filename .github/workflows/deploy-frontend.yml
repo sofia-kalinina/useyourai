@@ -12,7 +12,6 @@ on:
 env:
   AWS_REGION: eu-central-1
   TFC_WORKSPACE: ws-FRPCL1cuSBwuiLzS
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 # Required for OIDC
 permissions:
@@ -26,10 +25,10 @@ jobs:
       api_gateway_url: ${{ steps.fetch_outputs.outputs.api_gateway_url }}
       ui_bucket_name: ${{ steps.fetch_outputs.outputs.ui_bucket_name }}
       cdn_distribution_id: ${{ steps.fetch_outputs.outputs.cdn_distribution_id }}
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
 
       - name: Fetch Terraform Cloud outputs
         id: fetch_outputs
@@ -50,11 +49,11 @@ jobs:
                     --header "Authorization: Bearer ${{ secrets.TFC_TOKEN }}" \
                     --header "Content-Type: application/vnd.api+json" \
                     "$next_url")
-                
+
                 while IFS= read -r line; do
                     all_data+=("$line")
                 done < <(echo "$response" | jq -c '.data[]')
-                
+
                 next_url=$(echo "$response" | jq -r '.links.next // empty')
             done
 
@@ -84,7 +83,7 @@ jobs:
             echo "API_GATEWAY_URL: $API_GATEWAY_URL"
             echo "CDN_DISTRIBUTION_ID: $CDN_DISTRIBUTION_ID"
             echo "UI_BUCKET_NAME: $UI_BUCKET_NAME"
-          
+
             echo "api_gateway_url=$API_GATEWAY_URL" >> $GITHUB_OUTPUT
             echo "cdn_distribution_id=$CDN_DISTRIBUTION_ID" >> $GITHUB_OUTPUT
             echo "ui_bucket_name=$UI_BUCKET_NAME" >> $GITHUB_OUTPUT
@@ -99,7 +98,7 @@ jobs:
           cat ui/public/config.js
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6.3.0
         with:
           node-version: '18'
           cache: 'npm'
@@ -116,7 +115,7 @@ jobs:
           npm run build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.0
         with:
           name: frontend-build
           path: ui/build/
@@ -128,16 +127,16 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    
+
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8.0.1
         with:
           name: frontend-build
           path: ui/build/
 
       - name: Configure AWS credentials via OIDC
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6.0.0
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
