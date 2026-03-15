@@ -18,10 +18,17 @@ const Chat = () => {
   const [level, setLevel] = useState('A2');
   const [feedbackMode, setFeedbackMode] = useState('end');
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      inputRef.current?.focus();
+    }
+  }, [isLoading]);
 
   if (!API_URL) {
     return (
@@ -168,6 +175,7 @@ const Chat = () => {
           placeholder={sessionId ? 'Type your answer...' : "Ask for exercises, e.g. 'Give me 5 German adjective exercises'"}
           disabled={isLoading}
           autoFocus
+          ref={inputRef}
         />
         <button onClick={handleSend} disabled={isLoading || !input.trim()} aria-label="Send">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
