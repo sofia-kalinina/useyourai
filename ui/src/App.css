@@ -1,7 +1,8 @@
 .App {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100vh;        /* fallback for older browsers */
+  height: 100dvh;       /* shrinks when mobile keyboard opens */
   background: linear-gradient(160deg, #eef6fb 0%, #e8f4fa 50%, #f0f2f5 100%);
 }
 

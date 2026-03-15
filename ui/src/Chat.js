@@ -30,7 +30,7 @@ const Chat = () => {
 
   useEffect(() => {
     if (!isLoading) {
-      inputRef.current?.focus();
+      inputRef.current?.blur();
     }
   }, [isLoading]);
 
@@ -201,7 +201,6 @@ const Chat = () => {
           onKeyPress={(e) => e.key === 'Enter' && handleSend()}
           placeholder={sessionId ? tr.placeholderAnswer : tr.placeholderPrompt}
           disabled={isLoading}
-          autoFocus
           ref={inputRef}
         />
         <button onClick={handleSend} disabled={isLoading || !input.trim()} aria-label="Send">
