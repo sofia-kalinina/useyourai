@@ -1,108 +1,105 @@
 # useyourai
 
-## Adaptive Language-Practice Session
+[![Deploy Frontend](https://img.shields.io/github/actions/workflow/status/sofia-kalinina/useyourai/deploy-frontend.yml?branch=main&label=deploy&style=flat-square)](https://github.com/sofia-kalinina/useyourai/actions/workflows/deploy-frontend.yml)
+[![Test Lambdas](https://img.shields.io/github/actions/workflow/status/sofia-kalinina/useyourai/test-lambdas.yml?branch=main&label=tests&style=flat-square)](https://github.com/sofia-kalinina/useyourai/actions/workflows/test-lambdas.yml)
 
-`useyourai` is an innovative language learning application designed to provide adaptive practice sessions without the need for user accounts. It leverages the power of AI to generate personalized exercises, offer real-time feedback, and help learners focus on areas where they need the most improvement.
+> AI-powered language grammar practice, on demand — no account required.
+
+`useyourai` is a serverless language learning app that generates personalized grammar exercises through a chat interface. Describe what you want to practice, get exercises one by one, and receive AI-generated feedback at configurable intervals. Built end-to-end on AWS with Claude Sonnet via Bedrock.
+
+Live: [useyourai.eu](https://useyourai.eu) · Dev: [dev.useyourai.eu](https://dev.useyourai.eu)
 
 ## Features
 
-As a learner, you can:
+- **On-demand exercise generation** — describe a topic in plain text (e.g. *"10 sentences to practice German accusative case"*) and Claude generates a structured exercise set
+- **One-by-one practice** — exercises are presented individually; each answer is evaluated by Claude
+- **Configurable feedback** — set how often you receive textual feedback (e.g. every 3 answers)
+- **Retry mistakes** — after completing a session, get a new targeted exercise set focused on what you got wrong
+- **No account needed** — sessions are stored temporarily (24h TTL) and then auto-deleted
 
-- **Request Custom Exercises:** Easily ask the system for a specific number of exercises on any free-text topic (e.g., "Get 10 sentences to train topic 'German accusative case'").
-- **Interactive Practice:** Practice items one by one, receiving immediate textual feedback.
-- **AI-Powered Feedback:** Get intelligent, textual feedback from the Claude Sonnet model at configurable intervals, helping you understand your mistakes without numeric scores.
-- **Targeted Practice:** After completing a session, choose to re-run a targeted practice set focused specifically on items you answered incorrectly.
-- **Session Persistence:** Your practice sessions are persistent for a configurable retention period, allowing you to pick up where you left off, and are then auto-deleted for privacy.
+## Architecture
 
-## How it Works
-
-1.  **Prompt for Exercises:** You provide a free-text prompt specifying the number of exercises and the topic.
-2.  **AI Generation:** The system uses the Claude Sonnet model to generate the requested exercises and stores them under a unique session ID.
-3.  **One-by-One Practice:** Exercises are presented individually. Your answers are persisted and evaluated by the Claude Sonnet model as correct or incorrect.
-4.  **Configurable Feedback:** Textual feedback is provided based on your session's configured frequency (`feedback_every_n`).
-5.  **Retry Mistakes:** Upon session completion, you're prompted to retry mistakes. If accepted, Claude Sonnet generates a new set of exercises tailored to address your specific errors.
-
-## Technologies Used
-
-### Frontend (UI)
-
-- **React:** A JavaScript library for building user interfaces.
-- **Axios:** Promise-based HTTP client for making API requests.
-- **CSS:** For styling the chat-like interface.
-
-### Backend (API & Logic)
-
-- **AWS API Gateway:** For exposing the backend lambda functions.
-- **AWS Lambda:** Serverless compute service for running the application logic (e.g., exercise generation, evaluation).
-- **Claude Sonnet (via API):** The AI model used for generating exercises and providing feedback.
-- **Terraform:** For defining and managing the cloud infrastructure.
-
-## Setup Instructions
-
-### 1. Clone the Repository
-
-```bash
-git clone [repository-url]
-cd useyourai
+```
+Browser (React)
+  └─▶ CloudFront ──▶ S3 (static assets)
+  └─▶ API Gateway (HTTP)
+        ├─▶ POST /session          → create_session Lambda
+        └─▶ POST /session/{id}/answer → submit_answer Lambda
+                ├─▶ AWS Bedrock (Claude Sonnet 4.5)
+                └─▶ DynamoDB
 ```
 
-### 2. Frontend Setup
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, Axios |
+| Backend | AWS Lambda (Python 3.11) |
+| AI | AWS Bedrock — Claude Sonnet 4.5 (`eu-central-1`) |
+| Database | DynamoDB (on-demand, TTL-based cleanup) |
+| API | AWS API Gateway (HTTP) |
+| CDN | CloudFront + S3 |
+| IaC | Terraform + Terraform Cloud |
+| CI/CD | GitHub Actions (OIDC, no long-lived credentials) |
 
-Navigate to the `ui` directory and install dependencies:
+## Project Structure
 
-```bash
-cd ui
-npm install
+```
+.
+├── lambdas/           # Python Lambda functions
+│   ├── create_session.py    # POST /session — generate exercises
+│   └── submit_answer.py     # POST /session/{id}/answer — evaluate answers
+├── ui/                # React frontend
+│   └── src/
+│       ├── App.js
+│       ├── Chat.js          # Main chat interface and session logic
+│       └── Message.js
+├── infra/             # Terraform modules and environments
+│   ├── modules/       # api_gateway, lambdas, dynamodb, frontend
+│   └── environments/  # dev, prod
+├── tests/             # Python unit tests (moto for DynamoDB mocking)
+└── .github/workflows/ # CI/CD: frontend deploy + Lambda tests
 ```
 
-### 3. Backend Setup (Infrastructure)
+## Local Development
 
-This project uses Terraform to manage its AWS infrastructure. You will need AWS credentials configured for Terraform.
+### Prerequisites
 
-Navigate to the `infra` directory:
+- Node.js 18+
+- Python 3.11+
+- AWS credentials (for local Lambda testing only)
 
-```bash
-cd infra
-```
+### Frontend
 
-Initialize Terraform (ensure you are in the correct environment, e.g., `dev`):
+Run `/setup-frontend` to install dependencies and configure the API URL, then `/start-frontend-locally` to start the dev server on http://localhost:3000.
 
-```bash
-terraform init
-terraform apply
-```
+The frontend reads the API URL from `window.ENV.API_URL` (injected via `ui/public/config.js`). For local development you need to copy the example config and set it to your API Gateway dev URL — `/setup-frontend` handles this.
 
-**Note:** Ensure your API Gateway is configured with CORS to allow requests from your frontend (e.g., `http://localhost:3000`). This has been configured in the `infra/modules/api_gateway/main.tf` file.
+### Lambda tests
 
-### 4. Running the Frontend
+Run `/test-lambdas` to install dependencies and run the full pytest suite.
 
-After setting up the backend and installing frontend dependencies, start the React development server from the `ui` directory:
+## Deployment
 
-```bash
-cd ui
-npm start
-```
+Infrastructure is managed by **Terraform Cloud** — do not run `terraform apply` locally.
 
-The application should open in your browser at `http://localhost:3000`.
+- **Workspaces:** https://app.terraform.io/app/sofiia-kalinina/workspaces/
+- **Frontend deploy:** automatic on push to `main` (GitHub Actions syncs the React build to S3 and invalidates CloudFront)
+- **Lambda deploy:** handled by Terraform when Lambda source files change
 
-## Usage
+> [!NOTE]
+> The CI/CD pipeline fetches Terraform outputs (API Gateway URL, S3 bucket, CloudFront distribution ID) to generate `config.js` and deploy the frontend without any hardcoded values.
 
-Once the application is running, type your exercise requests into the chat input field. For example:
+## How It Works
 
-- "Give me 5 sentences to practice French verbs in the past tense."
-- "Generate 10 questions about the history of Rome."
+1. **Start a session** — type a prompt like *"Give me 5 exercises on French past tense"*. The app calls `POST /session`, which asks Claude to generate structured exercises, stores them in DynamoDB, and returns the first one.
 
-The system will respond with exercises and feedback as you progress through your session.
+2. **Answer exercises** — each answer is submitted to `POST /session/{id}/answer`. Claude evaluates correctness, and textual feedback is generated every N answers (configurable per session).
 
+3. **Retry mistakes** — when the session ends, the app shows how many answers were wrong and offers to start a focused retry session. *(Coming in Sprint 3)*
 
-## Future Enhancements
+## Roadmap
 
-*   Implement user authentication and accounts.
-*   Expand feedback mechanisms (e.g., voice feedback, detailed explanations).
-*   Add more exercise types and customization options.
-*   Integrate with other language models.
-*   Improve UI/UX with more advanced features and responsiveness.
-
----
-*This README.md was generated by Gemini.*
-
+- [ ] `POST /session/{id}/retry` — targeted retry sessions based on mistakes
+- [ ] Secure API Gateway (rate limiting, auth)
+- [ ] Production environment
+- [ ] CloudWatch structured logging
+- [ ] User accounts and study history
