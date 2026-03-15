@@ -15,7 +15,7 @@ const Chat = () => {
   const [sessionId, setSessionId] = useState(null);
   const [currentExerciseId, setCurrentExerciseId] = useState(null);
   const [level, setLevel] = useState('A2');
-  const [feedbackMode, setFeedbackMode] = useState('at_end');
+  const [feedbackMode, setFeedbackMode] = useState('end');
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
