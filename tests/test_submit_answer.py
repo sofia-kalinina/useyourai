@@ -67,16 +67,15 @@ def dynamodb_table():
         yield table
 
 
-@pytest.fixture
-def seeded_table(dynamodb_table):
-    """Table pre-populated with one session and three exercises."""
+def seed_session(dynamodb_table, feedback_mode="end"):
     dynamodb_table.put_item(Item={
         "session_id": SESSION_ID,
         "question_id": "SESSION",
         "topic": "German accusative case",
         "category": "grammar",
         "language": "German",
-        "feedback_every_n": 2,
+        "level": "B1",
+        "feedback_mode": feedback_mode,
         "status": "active",
         "ttl": 9999999999,
     })
@@ -88,6 +87,18 @@ def seeded_table(dynamodb_table):
             "expected_answer": ex["expected_answer"],
         })
     return dynamodb_table
+
+
+@pytest.fixture
+def seeded_table(dynamodb_table):
+    """Table pre-populated with feedback_mode='end' (default)."""
+    return seed_session(dynamodb_table, feedback_mode="end")
+
+
+@pytest.fixture
+def seeded_table_each(dynamodb_table):
+    """Table pre-populated with feedback_mode='each'."""
+    return seed_session(dynamodb_table, feedback_mode="each")
 
 
 # --- Happy path ---
@@ -117,24 +128,9 @@ def test_answer_persisted_to_dynamodb(seeded_table):
     assert item["is_correct"] is True
 
 
-def test_feedback_triggered_every_n_answers(seeded_table):
-    # feedback_every_n = 2, so feedback fires after 2nd answer
-    eval_mock = MagicMock(side_effect=[bedrock_eval_response(True), bedrock_eval_response(False)])
-    feedback_text = "You're doing well!"
-
-    def invoke_side_effect(**kwargs):
-        # Detect feedback call by max_tokens or by call order
-        if eval_mock.call_count <= 1:
-            return bedrock_eval_response(True)
-        return bedrock_eval_response(False)
-
-    # First answer (no feedback expected)
-    with patch.object(submit_answer.bedrock, "invoke_model", return_value=bedrock_eval_response(True)):
-        r1 = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
-    assert "feedback" not in json.loads(r1["body"])
-
-    # Second answer (feedback expected — answer_count=2, 2%2==0)
-    responses = [bedrock_eval_response(False), bedrock_feedback_response(feedback_text)]
+def test_feedback_mode_each_returns_feedback_after_every_answer(seeded_table_each):
+    feedback_text = "Good effort!"
+    responses = [bedrock_eval_response(True), bedrock_feedback_response(feedback_text)]
     call_count = [0]
 
     def invoke_model(**kwargs):
@@ -143,13 +139,18 @@ def test_feedback_triggered_every_n_answers(seeded_table):
         return r
 
     with patch.object(submit_answer.bedrock, "invoke_model", side_effect=invoke_model):
-        r2 = submit_answer.lambda_handler(make_event(exercise_id="02", answer="wrong"), {})
-    body2 = json.loads(r2["body"])
-    assert body2["feedback"] == feedback_text
+        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
+    body = json.loads(response["body"])
+    assert body["feedback"] == feedback_text
 
 
-def test_last_exercise_marks_session_complete_and_returns_mistakes(seeded_table):
-    # Pre-answer exercises 01 and 02
+def test_feedback_mode_end_no_feedback_mid_session(seeded_table):
+    with patch.object(submit_answer.bedrock, "invoke_model", return_value=bedrock_eval_response(True)):
+        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
+    assert "feedback" not in json.loads(response["body"])
+
+
+def test_session_complete_returns_mistakes_and_end_feedback(seeded_table):
     seeded_table.update_item(
         Key={"session_id": SESSION_ID, "question_id": "01"},
         UpdateExpression="SET user_answer = :ua, is_correct = :ic",
@@ -161,21 +162,50 @@ def test_last_exercise_marks_session_complete_and_returns_mistakes(seeded_table)
         ExpressionAttributeValues={":ua": "wrong", ":ic": False},
     )
 
-    # Answer exercise 03 (last one) — 3 % 2 != 0, no feedback
-    with patch.object(submit_answer.bedrock, "invoke_model", return_value=bedrock_eval_response(True)):
+    feedback_text = "Well done overall!"
+    responses = [bedrock_eval_response(True), bedrock_feedback_response(feedback_text)]
+    call_count = [0]
+
+    def invoke_model(**kwargs):
+        r = responses[call_count[0]]
+        call_count[0] += 1
+        return r
+
+    with patch.object(submit_answer.bedrock, "invoke_model", side_effect=invoke_model):
         response = submit_answer.lambda_handler(make_event(exercise_id="03", answer="Wir brauchen das Auto."), {})
 
     body = json.loads(response["body"])
     assert response["statusCode"] == 200
     assert body["next_exercise"] is None
-    assert "mistakes" in body
-    # exercise 02 was wrong
     assert len(body["mistakes"]) == 1
     assert body["mistakes"][0]["exercise_id"] == "02"
+    assert body["feedback"] == feedback_text
 
-    # Session should be marked complete in DynamoDB
     session = seeded_table.get_item(Key={"session_id": SESSION_ID, "question_id": "SESSION"})["Item"]
     assert session["status"] == "complete"
+
+
+def test_session_complete_feedback_mode_each_no_end_feedback(seeded_table_each):
+    seeded_table_each.update_item(
+        Key={"session_id": SESSION_ID, "question_id": "01"},
+        UpdateExpression="SET user_answer = :ua, is_correct = :ic",
+        ExpressionAttributeValues={":ua": "Ich sehe den Mann.", ":ic": True},
+    )
+    seeded_table_each.update_item(
+        Key={"session_id": SESSION_ID, "question_id": "02"},
+        UpdateExpression="SET user_answer = :ua, is_correct = :ic",
+        ExpressionAttributeValues={":ua": "Sie kauft das Buch.", ":ic": True},
+    )
+
+    # Last answer — no end-of-session feedback call expected for mode "each"
+    with patch.object(submit_answer.bedrock, "invoke_model", side_effect=[bedrock_eval_response(True), bedrock_feedback_response("Per-answer feedback")]):
+        response = submit_answer.lambda_handler(make_event(exercise_id="03", answer="Wir brauchen das Auto."), {})
+
+    body = json.loads(response["body"])
+    assert body["next_exercise"] is None
+    assert "mistakes" in body
+    # feedback is per-answer (mode each), included from the eval call
+    assert body["feedback"] == "Per-answer feedback"
 
 
 # --- Validation errors ---

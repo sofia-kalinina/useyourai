@@ -30,12 +30,14 @@ def bedrock_response_for(data):
     return {"body": mock_body}
 
 
-def make_event(prompt=None, feedback_every_n=None):
+def make_event(prompt=None, level="B1", feedback_mode="end"):
     payload = {}
     if prompt is not None:
         payload["prompt"] = prompt
-    if feedback_every_n is not None:
-        payload["feedback_every_n"] = feedback_every_n
+    if level is not None:
+        payload["level"] = level
+    if feedback_mode is not None:
+        payload["feedback_mode"] = feedback_mode
     return {"body": json.dumps(payload)}
 
 
@@ -61,7 +63,7 @@ def dynamodb_table():
 
 def test_valid_request_returns_200(dynamodb_table):
     with patch.object(create_session.bedrock, "invoke_model", return_value=bedrock_response_for(FAKE_EXERCISE_DATA)):
-        response = create_session.lambda_handler(make_event("10 German accusative exercises", 3), {})
+        response = create_session.lambda_handler(make_event("10 German accusative exercises"), {})
     assert response["statusCode"] == 200
     body = json.loads(response["body"])
     assert "session_id" in body
@@ -72,19 +74,20 @@ def test_valid_request_returns_200(dynamodb_table):
 
 def test_valid_request_persists_session_metadata(dynamodb_table):
     with patch.object(create_session.bedrock, "invoke_model", return_value=bedrock_response_for(FAKE_EXERCISE_DATA)):
-        response = create_session.lambda_handler(make_event("10 German accusative exercises", 3), {})
+        response = create_session.lambda_handler(make_event("10 German accusative exercises", level="B1", feedback_mode="end"), {})
     session_id = json.loads(response["body"])["session_id"]
     item = dynamodb_table.get_item(Key={"session_id": session_id, "question_id": "SESSION"})["Item"]
     assert item["topic"] == "German accusative case"
     assert item["language"] == "German"
     assert item["status"] == "active"
-    assert int(item["feedback_every_n"]) == 3
+    assert item["level"] == "B1"
+    assert item["feedback_mode"] == "end"
     assert "ttl" in item
 
 
 def test_valid_request_persists_exercises(dynamodb_table):
     with patch.object(create_session.bedrock, "invoke_model", return_value=bedrock_response_for(FAKE_EXERCISE_DATA)):
-        response = create_session.lambda_handler(make_event("10 German accusative exercises", 3), {})
+        response = create_session.lambda_handler(make_event("10 German accusative exercises"), {})
     session_id = json.loads(response["body"])["session_id"]
     exercise = dynamodb_table.get_item(Key={"session_id": session_id, "question_id": "01"})["Item"]
     assert exercise["question"] == "Translate: I see the man."
@@ -97,12 +100,17 @@ def test_missing_body_returns_400():
 
 
 def test_missing_prompt_returns_400():
-    response = create_session.lambda_handler(make_event(feedback_every_n=3), {})
+    response = create_session.lambda_handler(make_event(prompt=None), {})
     assert response["statusCode"] == 400
 
 
-def test_missing_feedback_every_n_returns_400():
-    response = create_session.lambda_handler(make_event(prompt="some prompt"), {})
+def test_invalid_level_returns_400():
+    response = create_session.lambda_handler(make_event(prompt="some prompt", level="Z9"), {})
+    assert response["statusCode"] == 400
+
+
+def test_invalid_feedback_mode_returns_400():
+    response = create_session.lambda_handler(make_event(prompt="some prompt", feedback_mode="sometimes"), {})
     assert response["statusCode"] == 400
 
 
@@ -113,14 +121,14 @@ def test_invalid_json_body_returns_400():
 
 def test_prompt_too_long_returns_400():
     long_prompt = "a" * 501
-    response = create_session.lambda_handler(make_event(prompt=long_prompt, feedback_every_n=3), {})
+    response = create_session.lambda_handler(make_event(prompt=long_prompt), {})
     assert response["statusCode"] == 400
 
 
 def test_claude_malformed_exercise_schema_returns_502(dynamodb_table):
     bad_data = {**FAKE_EXERCISE_DATA, "exercises": [{"id": "01"}]}  # missing question and expected_answer
     with patch.object(create_session.bedrock, "invoke_model", return_value=bedrock_response_for(bad_data)):
-        response = create_session.lambda_handler(make_event("10 exercises", 3), {})
+        response = create_session.lambda_handler(make_event("10 exercises"), {})
     assert response["statusCode"] == 502
 
 
@@ -128,5 +136,5 @@ def test_claude_invalid_json_returns_502(dynamodb_table):
     mock_body = MagicMock()
     mock_body.read.return_value = json.dumps({"content": [{"type": "text", "text": "not json at all"}]}).encode()
     with patch.object(create_session.bedrock, "invoke_model", return_value={"body": mock_body}):
-        response = create_session.lambda_handler(make_event("10 exercises", 3), {})
+        response = create_session.lambda_handler(make_event("10 exercises"), {})
     assert response["statusCode"] == 502

@@ -31,6 +31,8 @@ Return ONLY valid JSON in this exact format, with no other text before or after:
 }"""
 
 MAX_PROMPT_LENGTH = 500
+VALID_LEVELS = {"A1", "A2", "B1", "B2", "C1", "C2"}
+VALID_FEEDBACK_MODES = {"each", "end"}
 
 
 def lambda_handler(event, context):
@@ -44,14 +46,18 @@ def lambda_handler(event, context):
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid JSON in request body"})}
 
     prompt = body.get('prompt')
-    feedback_every_n = body.get('feedback_every_n')
+    level = body.get('level')
+    feedback_mode = body.get('feedback_mode')
 
     if not prompt:
         return {"statusCode": 400, "body": json.dumps({"error": "'prompt' is required"})}
     if len(prompt) > MAX_PROMPT_LENGTH:
         return {"statusCode": 400, "body": json.dumps({"error": f"'prompt' must be {MAX_PROMPT_LENGTH} characters or fewer"})}
-    if feedback_every_n is None:
-        return {"statusCode": 400, "body": json.dumps({"error": "'feedback_every_n' is required"})}
+    if level not in VALID_LEVELS:
+        return {"statusCode": 400, "body": json.dumps({"error": f"'level' must be one of: {', '.join(sorted(VALID_LEVELS))}"})}
+    if feedback_mode not in VALID_FEEDBACK_MODES:
+        return {"statusCode": 400, "body": json.dumps({"error": f"'feedback_mode' must be one of: {', '.join(sorted(VALID_FEEDBACK_MODES))}"})}
+
 
     try:
         bedrock_response = bedrock.invoke_model(
@@ -60,7 +66,7 @@ def lambda_handler(event, context):
             contentType="application/json",
             body=json.dumps({
                 "system": SYSTEM_PROMPT,
-                "messages": [{"role": "user", "content": [{"type": "text", "text": f"<user_prompt>{prompt}</user_prompt>"}]}],
+                "messages": [{"role": "user", "content": [{"type": "text", "text": f"<user_prompt>{prompt}</user_prompt>\nTarget level: {level}"}]}],
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": 2048,
                 "temperature": 0.7
@@ -107,7 +113,8 @@ def lambda_handler(event, context):
             "topic": exercise_data.get("topic", ""),
             "category": exercise_data.get("category", ""),
             "language": exercise_data.get("language", ""),
-            "feedback_every_n": feedback_every_n,
+            "level": level,
+            "feedback_mode": feedback_mode,
             "status": "active",
             "ttl": ttl
         })

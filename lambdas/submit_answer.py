@@ -100,7 +100,7 @@ def lambda_handler(event, context):
     if not current_exercise:
         return {"statusCode": 404, "body": json.dumps({"error": "Exercise not found"})}
 
-    feedback_every_n = int(session_item['feedback_every_n'])
+    feedback_mode = session_item.get('feedback_mode', 'end')
 
     # Evaluate the answer with Claude
     eval_prompt = (
@@ -137,25 +137,6 @@ def lambda_handler(event, context):
         for e in exercises
     ]
 
-    # Count all answered exercises after this submission
-    answer_count = sum(1 for e in exercises_updated if 'user_answer' in e)
-
-    # Optionally generate textual feedback every N answers
-    feedback = None
-    if answer_count % feedback_every_n == 0:
-        answered = [e for e in exercises_updated if 'user_answer' in e]
-        last_n = answered[-feedback_every_n:]
-        feedback_items = "\n\n".join(
-            f"Q: {e['question']}\nExpected: {e['expected_answer']}\nUser answered: {e['user_answer']}\nCorrect: {e['is_correct']}"
-            for e in last_n
-        )
-        feedback_prompt = f"Here are the last {feedback_every_n} exercises:\n\n{feedback_items}"
-        try:
-            feedback = _invoke_claude(FEEDBACK_SYSTEM_PROMPT, feedback_prompt, max_tokens=512)
-        except ClientError as e:
-            # Feedback failure is non-fatal — log and continue without it
-            print(f"[submit_answer] Bedrock feedback failed: {e.response['Error']['Code']} — {e.response['Error']['Message']}")
-
     # Find the next unanswered exercise
     next_unanswered = next(
         (e for e in exercises_updated if 'user_answer' not in e),
@@ -163,8 +144,19 @@ def lambda_handler(event, context):
     )
 
     response_body = {"is_correct": is_correct}
-    if feedback:
-        response_body["feedback"] = feedback
+
+    # Per-answer feedback fires on every answer when mode is "each"
+    if feedback_mode == 'each':
+        per_answer_prompt = (
+            f"Q: {current_exercise['question']}\n"
+            f"Expected: {current_exercise['expected_answer']}\n"
+            f"User answered: {answer}\n"
+            f"Correct: {is_correct}"
+        )
+        try:
+            response_body["feedback"] = _invoke_claude(FEEDBACK_SYSTEM_PROMPT, per_answer_prompt, max_tokens=256)
+        except ClientError as e:
+            print(f"[submit_answer] Bedrock feedback failed: {e.response['Error']['Code']} — {e.response['Error']['Message']}")
 
     if next_unanswered:
         response_body["next_exercise"] = {
@@ -189,9 +181,22 @@ def lambda_handler(event, context):
             for e in exercises_updated
             if not e.get("is_correct", False)
         ]
+
+        # End-of-session summary feedback for mode "end"
+        if feedback_mode == 'end':
+            all_items = "\n\n".join(
+                f"Q: {e['question']}\nExpected: {e['expected_answer']}\nUser answered: {e['user_answer']}\nCorrect: {e['is_correct']}"
+                for e in exercises_updated
+            )
+            feedback_prompt = f"Here are all {len(exercises_updated)} exercises from the session:\n\n{all_items}"
+            try:
+                response_body["feedback"] = _invoke_claude(FEEDBACK_SYSTEM_PROMPT, feedback_prompt, max_tokens=512)
+            except ClientError as e:
+                print(f"[submit_answer] Bedrock feedback failed: {e.response['Error']['Code']} — {e.response['Error']['Message']}")
+
         response_body["next_exercise"] = None
         response_body["mistakes"] = mistakes
         print(f"[submit_answer] Session {session_id} complete. {len(mistakes)} mistake(s).")
 
-    print(f"[submit_answer] Session {session_id}, exercise {exercise_id}: is_correct={is_correct}, answer_count={answer_count}")
+    print(f"[submit_answer] Session {session_id}, exercise {exercise_id}: is_correct={is_correct}")
     return {"statusCode": 200, "body": json.dumps(response_body)}
