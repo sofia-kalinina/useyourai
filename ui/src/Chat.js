@@ -8,12 +8,14 @@ const Chat = () => {
   const API_URL = window.ENV?.API_URL;
 
   const [messages, setMessages] = useState([
-    { text: 'Welcome to useyourai! Ask for a set of exercises on any language topic — for example, "Give me 10 German accusative case exercises". You can also specify how often you want feedback, e.g. "...and show me results every 3 answers".', sender: 'system' },
+    { text: 'Welcome to useyourai! Ask for a set of exercises on any language topic — for example, "Give me 10 German accusative case exercises".', sender: 'system' },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState(null);
   const [currentExerciseId, setCurrentExerciseId] = useState(null);
+  const [level, setLevel] = useState('A2');
+  const [feedbackMode, setFeedbackMode] = useState('at_end');
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -33,13 +35,11 @@ const Chat = () => {
     setMessages((prev) => [...prev, { text, sender }]);
 
   const handleNewSession = async (prompt) => {
-    const match = prompt.match(/every\s+(\d+)/i);
-    const feedback_every_n = match ? parseInt(match[1], 10) : 3;
-
     try {
       const response = await axios.post(`${API_URL}/session`, {
         prompt,
-        feedback_every_n,
+        level,
+        feedback_mode: feedbackMode,
       });
       const { session_id, exercise } = response.data;
       setSessionId(session_id);
@@ -107,9 +107,47 @@ const Chat = () => {
   return (
     <div className="chat-container">
       <div className="message-list">
-        {messages.map((message, index) => (
-          <Message key={index} message={message} />
-        ))}
+        {messages.map((message, index) => {
+          const isWelcome = index === 0 && !sessionId;
+          if (isWelcome) {
+            return (
+              <div key={index} className="welcome-row">
+                <Message message={message} />
+                <div className="session-config">
+                  <div className="pill-group">
+                    {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((l) => (
+                      <button
+                        key={l}
+                        className={`pill${level === l ? ' pill--active' : ''}`}
+                        onClick={() => setLevel(l)}
+                        disabled={isLoading}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="pill-group">
+                    <button
+                      className={`pill${feedbackMode === 'after_each' ? ' pill--active' : ''}`}
+                      onClick={() => setFeedbackMode('after_each')}
+                      disabled={isLoading}
+                    >
+                      After each
+                    </button>
+                    <button
+                      className={`pill${feedbackMode === 'at_end' ? ' pill--active' : ''}`}
+                      onClick={() => setFeedbackMode('at_end')}
+                      disabled={isLoading}
+                    >
+                      At the end
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          return <Message key={index} message={message} />;
+        })}
         {isLoading && (
           <div className="message system">
             <div className="typing-bubble">
