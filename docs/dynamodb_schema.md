@@ -26,7 +26,7 @@ One table, two item types — distinguished by the `question_id` value.
 | `topic` | S | Exercise topic (e.g. "German accusative case") |
 | `category` | S | Grammar category (e.g. "grammar") |
 | `language` | S | Target language (e.g. "German") |
-| `feedback_every_n` | N | How often to generate textual feedback (every N answers) |
+| `feedback_every_n` | N | How often to generate textual feedback (every N answers) — **being replaced by `level` (S) and `feedback_mode` (S) in issue #66** |
 | `status` | S | Session state: `active` \| `complete` |
 | `parent_session_id` | S | Set on retry sessions; references the original session (optional) |
 | `ttl` | N | Unix timestamp for auto-deletion |

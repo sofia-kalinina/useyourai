@@ -33,7 +33,7 @@ All tool versions must be pinned and up-to-date. Prefer tools with strong commun
 ### Backend (lambdas/)
 Lambda functions (Python 3.11, region `eu-central-1`):
 - `create_session.py` — receives `{ prompt, feedback_every_n }`, calls Claude via Bedrock to generate structured exercises, persists session metadata + all exercises to DynamoDB, returns `session_id` + first exercise
-- `submit_answer.py` — receives `{ exercise_id, answer }` via `POST /session/{id}/answer`, evaluates the answer with Claude, saves result to DynamoDB, generates textual feedback every N answers, returns `is_correct` + optional `feedback` + `next_exercise` (null when session complete, also returns `mistakes`)
+- `submit_answer.py` — receives `{ exercise_id, answer }` via `POST /session/{id}/answer`, evaluates the answer with Claude, saves result to DynamoDB, returns `is_correct` + optional `feedback` + `next_exercise` (null when session complete, also returns `mistakes`). Feedback behaviour is controlled by `feedback_every_n` on the session item — pending replacement by `feedback_mode` (see issue #66)
 - `init_session.py` — placeholder, pre-plan (to be removed)
 - `test_bedrock.py` — placeholder, pre-plan (to be removed)
 
@@ -84,6 +84,7 @@ pytest                    # Run Python tests from root
 - **Security defaults:** IAM least-privilege, no wildcard permissions, secrets in Parameter Store or Secrets Manager — never hardcoded.
 - **Cost awareness:** Flag architectural choices that could unexpectedly increase AWS spend (Lambda cold starts, DynamoDB read/write costs, over-provisioning).
 - **Backend simplicity:** Python code should be readable and boring, not clever.
+- **Prompt injection hardening:** All user-controlled strings passed to Claude must be wrapped in XML tags (e.g. `<user_prompt>`, `<user_answer>`) and length-capped before reaching Bedrock. Each system prompt must include an explicit instruction to treat tagged content as data only.
 - **DRY infrastructure:** No copy-paste Terraform.
 - **Explain the why:** When introducing patterns, explain the reasoning — I'm here to learn, not just ship.
 

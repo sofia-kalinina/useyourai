@@ -5,7 +5,7 @@
 ### `POST /session`
 Creates a session and generates all exercises in one step.
 
-- Receives: `{ prompt, feedback_every_n }`
+- Receives: `{ prompt, feedback_every_n }` — **`feedback_every_n` being replaced by `level` + `feedback_mode` (issues #65, #66)**
 - Calls Claude with the user's free-text prompt, asks for structured JSON:
   ```json
   {
@@ -29,7 +29,7 @@ The core practice loop.
 
 - Receives: `{ exercise_id, answer }`
 - Saves the answer, marks it correct/incorrect (Claude evaluation)
-- If `answer_count % feedback_every_n == 0` → calls Claude to evaluate the last N answers and generate textual feedback
+- Feedback behaviour controlled by `feedback_every_n` on session item — **being redesigned: feedback will fire after each answer or at end of session only, controlled by `feedback_mode` (issue #66)**
 - Returns:
   ```json
   {
@@ -75,10 +75,11 @@ One table, two item types (composite key: `session_id` PK + `question_id` SK):
 
 ## Frontend Flow
 
-1. User types free-text prompt → `POST /session` → display first exercise
-2. User submits answer → `POST /session/{id}/answer` → display feedback (if triggered) + next exercise
-3. Session complete → show "Retry mistakes?" prompt
-4. If accepted → `POST /session/{id}/retry` → new exercise set begins
+1. User selects level (A1–C2) and feedback mode ("after each answer" / "at the end") from UI controls — **pending issue #65**
+2. User types free-text prompt → `POST /session` → display first exercise
+3. User submits answer → `POST /session/{id}/answer` → display feedback (if triggered) + next exercise
+4. Session complete → show mistakes summary + feedback, reset to prompt state
+5. *(planned)* Show "Retry mistakes?" prompt → `POST /session/{id}/retry` → new exercise set begins
 
 ---
 
@@ -108,3 +109,6 @@ One table, two item types (composite key: `session_id` PK + `question_id` SK):
 9. Secure API Gateway
 10. Add prod environment
 11. CloudWatch structured logging across all Lambdas
+12. ✅ Harden Lambdas against prompt injection (XML tag wrapping, length caps, schema validation) — issue #67
+13. Add level selector + feedback mode UI controls — issue #65
+14. Replace `feedback_every_n` with `level` + `feedback_mode` params — issue #66
