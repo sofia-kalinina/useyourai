@@ -107,9 +107,47 @@ const Chat = () => {
   return (
     <div className="chat-container">
       <div className="message-list">
-        {messages.map((message, index) => (
-          <Message key={index} message={message} />
-        ))}
+        {messages.map((message, index) => {
+          const isWelcome = index === 0 && !sessionId;
+          if (isWelcome) {
+            return (
+              <div key={index} className="welcome-row">
+                <Message message={message} />
+                <div className="session-config">
+                  <div className="pill-group">
+                    {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((l) => (
+                      <button
+                        key={l}
+                        className={`pill${level === l ? ' pill--active' : ''}`}
+                        onClick={() => setLevel(l)}
+                        disabled={isLoading}
+                      >
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="pill-group">
+                    <button
+                      className={`pill${feedbackMode === 'after_each' ? ' pill--active' : ''}`}
+                      onClick={() => setFeedbackMode('after_each')}
+                      disabled={isLoading}
+                    >
+                      After each
+                    </button>
+                    <button
+                      className={`pill${feedbackMode === 'at_end' ? ' pill--active' : ''}`}
+                      onClick={() => setFeedbackMode('at_end')}
+                      disabled={isLoading}
+                    >
+                      At the end
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          return <Message key={index} message={message} />;
+        })}
         {isLoading && (
           <div className="message system">
             <div className="typing-bubble">
@@ -119,25 +157,6 @@ const Chat = () => {
         )}
         <div ref={messagesEndRef} />
       </div>
-      {!sessionId && (
-        <div className="settings-row">
-          <label>
-            Level
-            <select value={level} onChange={(e) => setLevel(e.target.value)} disabled={isLoading}>
-              {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((l) => (
-                <option key={l} value={l}>{l}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Feedback
-            <select value={feedbackMode} onChange={(e) => setFeedbackMode(e.target.value)} disabled={isLoading}>
-              <option value="after_each">After each answer</option>
-              <option value="at_end">At the end</option>
-            </select>
-          </label>
-        </div>
-      )}
       <div className="input-area">
         <input
           type="text"

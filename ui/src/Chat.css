@@ -38,39 +38,52 @@
   border-radius: 2px;
 }
 
-.settings-row {
+.welcome-row {
   display: flex;
-  gap: 12px;
-  padding: 0 16px 8px;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-.settings-row label {
+.session-config {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
-  font-size: 0.85rem;
+  padding: 10px 0;
+}
+
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pill {
+  padding: 3px 10px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 999px;
+  background: transparent;
   color: #6b7280;
-}
-
-.settings-row select {
-  padding: 4px 8px;
-  border: 1.5px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-family: inherit;
-  background: #ffffff;
-  color: #111827;
   cursor: pointer;
-  outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
 }
 
-.settings-row select:focus {
+.pill:hover:not(:disabled) {
   border-color: #61DAFB;
+  color: #0a2a35;
 }
 
-.settings-row select:disabled {
-  opacity: 0.5;
+.pill--active {
+  border-color: #61DAFB;
+  background: #61DAFB;
+  color: #0a2a35;
+  font-weight: 500;
+}
+
+.pill:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
