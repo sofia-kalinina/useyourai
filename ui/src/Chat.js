@@ -60,6 +60,7 @@ const Chat = () => {
         prompt,
         level,
         feedback_mode: feedbackMode,
+        lang,
       });
       const { session_id, exercise } = response.data;
       setSessionId(session_id);

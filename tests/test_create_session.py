@@ -30,7 +30,7 @@ def bedrock_response_for(data):
     return {"body": mock_body}
 
 
-def make_event(prompt=None, level="B1", feedback_mode="end"):
+def make_event(prompt=None, level="B1", feedback_mode="end", lang="en"):
     payload = {}
     if prompt is not None:
         payload["prompt"] = prompt
@@ -38,6 +38,8 @@ def make_event(prompt=None, level="B1", feedback_mode="end"):
         payload["level"] = level
     if feedback_mode is not None:
         payload["feedback_mode"] = feedback_mode
+    if lang is not None:
+        payload["lang"] = lang
     return {"body": json.dumps(payload)}
 
 
@@ -82,6 +84,7 @@ def test_valid_request_persists_session_metadata(dynamodb_table):
     assert item["status"] == "active"
     assert item["level"] == "B1"
     assert item["feedback_mode"] == "end"
+    assert item["lang"] == "en"
     assert "ttl" in item
 
 
@@ -107,6 +110,19 @@ def test_missing_prompt_returns_400():
 def test_invalid_level_returns_400():
     response = create_session.lambda_handler(make_event(prompt="some prompt", level="Z9"), {})
     assert response["statusCode"] == 400
+
+
+def test_invalid_lang_returns_400():
+    response = create_session.lambda_handler(make_event(prompt="some prompt", lang="fr"), {})
+    assert response["statusCode"] == 400
+
+
+def test_lang_uk_persisted(dynamodb_table):
+    with patch.object(create_session.bedrock, "invoke_model", return_value=bedrock_response_for(FAKE_EXERCISE_DATA)):
+        response = create_session.lambda_handler(make_event("10 exercises", lang="uk"), {})
+    session_id = json.loads(response["body"])["session_id"]
+    item = dynamodb_table.get_item(Key={"session_id": session_id, "question_id": "SESSION"})["Item"]
+    assert item["lang"] == "uk"
 
 
 def test_invalid_feedback_mode_returns_400():

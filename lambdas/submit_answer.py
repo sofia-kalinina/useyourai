@@ -29,6 +29,10 @@ MAX_ANSWER_LENGTH = 300
 FEEDBACK_SYSTEM_PROMPT = """You are a language learning coach. Given a set of recently answered exercises, provide brief, encouraging textual feedback highlighting what the user did well and what to improve.
 Return only the feedback text — no JSON, no headers, just a short paragraph."""
 
+LANG_INSTRUCTIONS = {
+    "uk": "Write your feedback in Ukrainian.",
+}
+
 
 def _invoke_claude(system_prompt, user_text, max_tokens=512):
     response = bedrock.invoke_model(
@@ -102,6 +106,8 @@ def lambda_handler(event, context):
         return {"statusCode": 404, "body": json.dumps({"error": "Exercise not found"})}
 
     feedback_mode = session_item.get('feedback_mode', 'end')
+    lang = session_item.get('lang', 'en')
+    lang_instruction = LANG_INSTRUCTIONS.get(lang, '')
 
     # Evaluate the answer with Claude
     eval_prompt = (
@@ -159,6 +165,7 @@ def lambda_handler(event, context):
             f"Expected: {current_exercise['expected_answer']}\n"
             f"User answered: {answer}\n"
             f"Correct: {is_correct}"
+            + (f"\n{lang_instruction}" if lang_instruction else "")
         )
         try:
             response_body["feedback"] = _invoke_claude(FEEDBACK_SYSTEM_PROMPT, per_answer_prompt, max_tokens=256)
@@ -195,7 +202,10 @@ def lambda_handler(event, context):
                 f"Q: {e['question']}\nExpected: {e['expected_answer']}\nUser answered: {e['user_answer']}\nCorrect: {e['is_correct']}"
                 for e in exercises_updated
             )
-            feedback_prompt = f"Here are all {len(exercises_updated)} exercises from the session:\n\n{all_items}"
+            feedback_prompt = (
+                f"Here are all {len(exercises_updated)} exercises from the session:\n\n{all_items}"
+                + (f"\n{lang_instruction}" if lang_instruction else "")
+            )
             try:
                 response_body["feedback"] = _invoke_claude(FEEDBACK_SYSTEM_PROMPT, feedback_prompt, max_tokens=512)
             except ClientError as e:
