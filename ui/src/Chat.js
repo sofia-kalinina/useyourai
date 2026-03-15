@@ -128,15 +128,15 @@ const Chat = () => {
                   </div>
                   <div className="pill-group">
                     <button
-                      className={`pill${feedbackMode === 'after_each' ? ' pill--active' : ''}`}
-                      onClick={() => setFeedbackMode('after_each')}
+                      className={`pill${feedbackMode === 'each' ? ' pill--active' : ''}`}
+                      onClick={() => setFeedbackMode('each')}
                       disabled={isLoading}
                     >
                       After each
                     </button>
                     <button
-                      className={`pill${feedbackMode === 'at_end' ? ' pill--active' : ''}`}
-                      onClick={() => setFeedbackMode('at_end')}
+                      className={`pill${feedbackMode === 'end' ? ' pill--active' : ''}`}
+                      onClick={() => setFeedbackMode('end')}
                       disabled={isLoading}
                     >
                       At the end
