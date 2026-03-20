@@ -186,7 +186,7 @@ const Chat = () => {
                       className={`pill${lang === 'uk' ? ' pill--active' : ''}`}
                       onClick={() => setLang('uk')}
                     >
-                      UK
+                      UA
                     </button>
                   </div>
                 </div>
