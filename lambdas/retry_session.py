@@ -75,10 +75,9 @@ def lambda_handler(event, context):
             if len(item[field]) > MAX_FIELD_LENGTH:
                 return {"statusCode": 400, "body": json.dumps({"error": f"Mistake '{field}' must be {MAX_FIELD_LENGTH} characters or fewer"})}
 
-    # Fetch parent session to inherit level, feedback_mode, lang
+    # Fetch parent session metadata item directly by its full primary key
     result = table.query(
-        KeyConditionExpression=Key('session_id').eq(parent_session_id),
-        FilterExpression=Key('question_id').eq('SESSION')
+        KeyConditionExpression=Key('session_id').eq(parent_session_id) & Key('question_id').eq('SESSION')
     )
     items = result.get('Items', [])
     session_item = next((i for i in items if i['question_id'] == 'SESSION'), None)
