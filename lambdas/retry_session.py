@@ -88,6 +88,7 @@ def lambda_handler(event, context):
     level = session_item.get('level', 'B1')
     feedback_mode = session_item.get('feedback_mode', 'end')
     lang = session_item.get('lang', 'en')
+    user_id = session_item.get('user_id')
     lang_instruction = LANG_INSTRUCTIONS.get(lang, '')
 
     # Build the mistakes block for Claude
@@ -149,7 +150,7 @@ def lambda_handler(event, context):
     ttl = int(time.time()) + 24 * 60 * 60
 
     with table.batch_writer() as batch:
-        batch.put_item(Item={
+        item = {
             "session_id": session_id,
             "question_id": "SESSION",
             "topic": exercise_data.get("topic", ""),
@@ -161,7 +162,10 @@ def lambda_handler(event, context):
             "status": "active",
             "parent_session_id": parent_session_id,
             "ttl": ttl
-        })
+        }
+        if user_id:
+            item["user_id"] = user_id
+        batch.put_item(Item=item)
         for exercise in exercises:
             batch.put_item(Item={
                 "session_id": session_id,
