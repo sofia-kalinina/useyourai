@@ -9,6 +9,9 @@ const translations = {
     incorrect: 'Incorrect.',
     sessionComplete: (correct, total) => `Session complete! Score: ${correct}/${total}.`,
     startNew: 'Start a new session to continue practising.',
+    retryPrompt: (count) => `You got ${count} wrong. Want to practice them again?`,
+    retryYes: 'Retry mistakes',
+    retryNo: 'Start new session',
     error: 'Sorry, something went wrong. Please try again.',
   },
   uk: {
@@ -21,6 +24,9 @@ const translations = {
     incorrect: 'Неправильно.',
     sessionComplete: (correct, total) => `Сесію завершено! Рахунок: ${correct}/${total}.`,
     startNew: 'Розпочніть нову сесію, щоб продовжити практику.',
+    retryPrompt: (count) => `Ви помилилися ${count} рази. Хочете повторити?`,
+    retryYes: 'Повторити помилки',
+    retryNo: 'Нова сесія',
     error: 'Вибачте, щось пішло не так. Спробуйте ще раз.',
   },
 };

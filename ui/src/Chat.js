@@ -29,6 +29,8 @@ const Chat = () => {
   const [sessionId, setSessionId] = useState(null);
   const [currentExerciseId, setCurrentExerciseId] = useState(null);
   const [answersSubmitted, setAnswersSubmitted] = useState(0);
+  const [pendingMistakes, setPendingMistakes] = useState(null);
+  const [pendingSessionId, setPendingSessionId] = useState(null);
   const [level, setLevel] = useState('A2');
   const [feedbackMode, setFeedbackMode] = useState('end');
   const messagesEndRef = useRef(null);
@@ -64,7 +66,30 @@ const Chat = () => {
   const addMessage = (text, sender) =>
     setMessages((prev) => [...prev, { text, sender }]);
 
+  const handleRetry = async () => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/session/${pendingSessionId}/retry`, {
+        mistakes: pendingMistakes,
+      });
+      const { session_id, exercise } = response.data;
+      setPendingMistakes(null);
+      setPendingSessionId(null);
+      setSessionId(session_id);
+      setAnswersSubmitted(0);
+      setCurrentExerciseId(exercise.id);
+      addMessage(exercise.question, 'system');
+    } catch (error) {
+      console.error('Error starting retry session:', error);
+      addMessage(tr.error, 'system');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleNewSession = async (prompt) => {
+    setPendingMistakes(null);
+    setPendingSessionId(null);
     try {
       const response = await axios.post(`${API_URL}/session`, {
         prompt,
@@ -107,10 +132,15 @@ const Chat = () => {
         const correct = total - mistakeCount;
         addMessage(tr.sessionComplete(correct, total), 'system');
         if (feedback) addMessage(feedback, 'system');
-        addMessage(tr.startNew, 'system');
         setSessionId(null);
         setCurrentExerciseId(null);
         setAnswersSubmitted(0);
+        if (mistakeCount > 0) {
+          setPendingMistakes(mistakes);
+          setPendingSessionId(sessionId);
+        } else {
+          addMessage(tr.startNew, 'system');
+        }
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
@@ -195,6 +225,23 @@ const Chat = () => {
           }
           return <Message key={index} message={message} />;
         })}
+        {pendingMistakes && !isLoading && (
+          <div className="retry-prompt">
+            <p className="retry-prompt__text">{tr.retryPrompt(pendingMistakes.length)}</p>
+            <div className="pill-group">
+              <button className="pill pill--active" onClick={handleRetry}>
+                {tr.retryYes}
+              </button>
+              <button className="pill" onClick={() => {
+                setPendingMistakes(null);
+                setPendingSessionId(null);
+                addMessage(tr.startNew, 'system');
+              }}>
+                {tr.retryNo}
+              </button>
+            </div>
+          </div>
+        )}
         {isLoading && (
           <div className="message system">
             <div className="typing-bubble">
