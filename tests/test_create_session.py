@@ -30,7 +30,7 @@ def bedrock_response_for(data):
     return {"body": mock_body}
 
 
-def make_event(prompt=None, level="B1", feedback_mode="end", lang="en"):
+def make_event(prompt=None, level="B1", feedback_mode="end", lang="en", user_id="test-user-uuid"):
     payload = {}
     if prompt is not None:
         payload["prompt"] = prompt
@@ -40,6 +40,8 @@ def make_event(prompt=None, level="B1", feedback_mode="end", lang="en"):
         payload["feedback_mode"] = feedback_mode
     if lang is not None:
         payload["lang"] = lang
+    if user_id is not None:
+        payload["user_id"] = user_id
     return {"body": json.dumps(payload)}
 
 
@@ -85,6 +87,7 @@ def test_valid_request_persists_session_metadata(dynamodb_table):
     assert item["level"] == "B1"
     assert item["feedback_mode"] == "end"
     assert item["lang"] == "en"
+    assert item["user_id"] == "test-user-uuid"
     assert "ttl" in item
 
 
@@ -154,3 +157,13 @@ def test_claude_invalid_json_returns_502(dynamodb_table):
     with patch.object(create_session.bedrock, "invoke_model", return_value={"body": mock_body}):
         response = create_session.lambda_handler(make_event("10 exercises"), {})
     assert response["statusCode"] == 502
+
+
+def test_missing_user_id_returns_400():
+    response = create_session.lambda_handler(make_event(prompt="some prompt", user_id=None), {})
+    assert response["statusCode"] == 400
+
+
+def test_user_id_too_long_returns_400():
+    response = create_session.lambda_handler(make_event(prompt="some prompt", user_id="x" * 129), {})
+    assert response["statusCode"] == 400
