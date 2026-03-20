@@ -15,6 +15,18 @@ resource "aws_dynamodb_table" "language_learning" {
     type = "S"
   }
 
+  attribute {
+    name = "user_id"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "by-user"
+    hash_key        = "user_id"
+    range_key       = "session_id"
+    projection_type = "ALL"
+  }
+
   ttl {
     attribute_name = "ttl"
     enabled        = true

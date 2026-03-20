@@ -11,6 +11,15 @@ TTL attribute: `ttl` (Unix timestamp, auto-delete after session retention period
 | PK  | `session_id` | String |
 | SK  | `question_id` | String |
 
+## Global Secondary Index: `by-user`
+
+| Key | Attribute | Type |
+|-----|-----------|------|
+| PK  | `user_id` | String |
+| SK  | `session_id` | String |
+
+Projection: ALL. Only SESSION metadata items have `user_id` set — exercise items are not indexed. Use this index to list all sessions belonging to a user.
+
 ## Item types
 
 One table, two item types — distinguished by the `question_id` value.
@@ -26,6 +35,7 @@ One table, two item types — distinguished by the `question_id` value.
 | `topic` | S | Exercise topic (e.g. "German accusative case") |
 | `category` | S | Grammar category (e.g. "grammar") |
 | `language` | S | Target language (e.g. "German") |
+| `user_id` | S | Identifies the session owner; anonymous device UUID until Cognito is added |
 | `level` | S | Learner level passed to Claude (A1–C2) |
 | `feedback_mode` | S | When to generate feedback: `each` (after every answer) or `end` (at session end) |
 | `status` | S | Session state: `active` \| `complete` |
