@@ -14,6 +14,14 @@ output "submit_answer_lambda_invoke_arn" {
   value = aws_lambda_function.submit_answer_lambda.invoke_arn
 }
 
+output "retry_session_lambda_name" {
+  value = aws_lambda_function.retry_session_lambda.function_name
+}
+
+output "retry_session_lambda_invoke_arn" {
+  value = aws_lambda_function.retry_session_lambda.invoke_arn
+}
+
 output "init_session_lambda_name" {
   value = aws_lambda_function.init_session_lambda.function_name
 

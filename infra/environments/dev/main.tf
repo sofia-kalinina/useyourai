@@ -72,6 +72,11 @@ module "api_gateway" {
       route_key  = "POST /session/{id}/answer"
     },
     {
+      name       = module.lambdas.retry_session_lambda_name
+      invoke_arn = module.lambdas.retry_session_lambda_invoke_arn
+      route_key  = "POST /session/{id}/retry"
+    },
+    {
       name       = module.lambdas.init_session_lambda_name
       invoke_arn = module.lambdas.init_session_lambda_invoke_arn
       route_key  = "POST /init"
