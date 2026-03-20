@@ -85,6 +85,7 @@ def seeded_table(dynamodb_table):
         "level": "B1",
         "feedback_mode": "end",
         "lang": "en",
+        "user_id": "test-user-uuid",
         "status": "complete",
         "ttl": 9999999999,
     })
@@ -114,6 +115,7 @@ def test_retry_session_persists_metadata_with_parent_link(seeded_table):
     assert item["level"] == "B1"
     assert item["feedback_mode"] == "end"
     assert item["lang"] == "en"
+    assert item["user_id"] == "test-user-uuid"
     assert "ttl" in item
 
 
