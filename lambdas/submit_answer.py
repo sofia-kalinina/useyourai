@@ -26,7 +26,12 @@ Be lenient with minor spelling variations and accept multiple valid phrasings. F
 
 MAX_ANSWER_LENGTH = 300
 
-FEEDBACK_SYSTEM_PROMPT = """You are a language learning coach. Given a set of recently answered exercises, provide brief, encouraging textual feedback highlighting what the user did well and what to improve.
+PER_ANSWER_FEEDBACK_SYSTEM_PROMPT = """You are a language exercise evaluator. The user's answer was incorrect.
+State the correct answer in one short sentence. Do not explain grammar rules, do not encourage, do not praise. Be direct and factual.
+Return only the feedback text — no JSON, no headers."""
+
+FEEDBACK_SYSTEM_PROMPT = """You are a language learning coach. Given a set of exercises from a completed session, provide concise feedback explaining which grammar rules the user should review and why, based on their mistakes.
+Do not praise or encourage. Focus only on what needs improvement.
 Return only the feedback text — no JSON, no headers, just a short paragraph."""
 
 LANG_INSTRUCTIONS = {
@@ -158,17 +163,16 @@ def lambda_handler(event, context):
 
     response_body = {"is_correct": is_correct}
 
-    # Per-answer feedback fires on every answer when mode is "each"
-    if feedback_mode == 'each':
+    # Per-answer feedback fires only for incorrect answers when mode is "each"
+    if feedback_mode == 'each' and not is_correct:
         per_answer_prompt = (
             f"Q: {current_exercise['question']}\n"
-            f"Expected: {current_exercise['expected_answer']}\n"
-            f"User answered: {answer}\n"
-            f"Correct: {is_correct}"
+            f"Correct answer: {current_exercise['expected_answer']}\n"
+            f"User answered: {answer}"
             + (f"\n{lang_instruction}" if lang_instruction else "")
         )
         try:
-            response_body["feedback"] = _invoke_claude(FEEDBACK_SYSTEM_PROMPT, per_answer_prompt, max_tokens=256)
+            response_body["feedback"] = _invoke_claude(PER_ANSWER_FEEDBACK_SYSTEM_PROMPT, per_answer_prompt, max_tokens=128)
         except ClientError as e:
             print(f"[submit_answer] Bedrock feedback failed: {e.response['Error']['Code']} — {e.response['Error']['Message']}")
 
