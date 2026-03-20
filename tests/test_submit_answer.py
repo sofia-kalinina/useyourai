@@ -135,9 +135,9 @@ def test_answer_persisted_to_dynamodb(seeded_table):
     assert item["is_correct"] is True
 
 
-def test_feedback_mode_each_returns_feedback_after_every_answer(seeded_table_each):
-    feedback_text = "Good effort!"
-    responses = [bedrock_eval_response(True), bedrock_feedback_response(feedback_text)]
+def test_feedback_mode_each_returns_feedback_on_incorrect_answer(seeded_table_each):
+    feedback_text = "The correct answer is: Ich sehe den Mann."
+    responses = [bedrock_eval_response(False), bedrock_feedback_response(feedback_text)]
     call_count = [0]
 
     def invoke_model(**kwargs):
@@ -146,9 +146,17 @@ def test_feedback_mode_each_returns_feedback_after_every_answer(seeded_table_eac
         return r
 
     with patch.object(submit_answer.bedrock, "invoke_model", side_effect=invoke_model):
-        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
+        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="wrong"), {})
     body = json.loads(response["body"])
     assert body["feedback"] == feedback_text
+
+
+def test_feedback_mode_each_no_feedback_on_correct_answer(seeded_table_each):
+    with patch.object(submit_answer.bedrock, "invoke_model", return_value=bedrock_eval_response(True)):
+        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
+    body = json.loads(response["body"])
+    assert body["is_correct"] is True
+    assert "feedback" not in body
 
 
 def test_feedback_mode_end_no_feedback_mid_session(seeded_table):
@@ -204,15 +212,14 @@ def test_session_complete_feedback_mode_each_no_end_feedback(seeded_table_each):
         ExpressionAttributeValues={":ua": "Sie kauft das Buch.", ":ic": True},
     )
 
-    # Last answer — no end-of-session feedback call expected for mode "each"
-    with patch.object(submit_answer.bedrock, "invoke_model", side_effect=[bedrock_eval_response(True), bedrock_feedback_response("Per-answer feedback")]):
+    # Last answer correct — no per-answer feedback, no end-of-session feedback for mode "each"
+    with patch.object(submit_answer.bedrock, "invoke_model", return_value=bedrock_eval_response(True)):
         response = submit_answer.lambda_handler(make_event(exercise_id="03", answer="Wir brauchen das Auto."), {})
 
     body = json.loads(response["body"])
     assert body["next_exercise"] is None
     assert "mistakes" in body
-    # feedback is per-answer (mode each), included from the eval call
-    assert body["feedback"] == "Per-answer feedback"
+    assert "feedback" not in body
 
 
 # --- Validation errors ---
@@ -318,16 +325,16 @@ def test_claude_non_boolean_is_correct_returns_502(seeded_table):
 # --- Ukrainian language ---
 
 def test_lang_uk_includes_language_instruction_in_feedback_prompt(seeded_table_uk):
-    """When lang='uk', the feedback prompt sent to Claude must contain the Ukrainian instruction."""
+    """When lang='uk' and answer is incorrect, the feedback prompt sent to Claude must contain the Ukrainian instruction."""
     captured_calls = []
 
     def invoke_model(**kwargs):
         captured_calls.append(kwargs)
-        r = bedrock_eval_response(True) if len(captured_calls) == 1 else bedrock_feedback_response("Чудова робота!")
+        r = bedrock_eval_response(False) if len(captured_calls) == 1 else bedrock_feedback_response("Правильна відповідь: Ich sehe den Mann.")
         return r
 
     with patch.object(submit_answer.bedrock, "invoke_model", side_effect=invoke_model):
-        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
+        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="wrong"), {})
 
     assert response["statusCode"] == 200
     # Second call is the feedback call — its body must contain the Ukrainian instruction
