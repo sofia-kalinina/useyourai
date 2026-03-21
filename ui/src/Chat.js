@@ -5,18 +5,8 @@ import Message from './Message';
 import translations from './translations';
 import './Chat.css';
 
-const getOrCreateUserId = () => {
-  let userId = localStorage.getItem('user_id');
-  if (!userId) {
-    userId = crypto.randomUUID();
-    localStorage.setItem('user_id', userId);
-  }
-  return userId;
-};
-
-const Chat = () => {
+const Chat = ({ userId }) => {
   const API_URL = window.ENV?.API_URL;
-  const userId = getOrCreateUserId();
 
   const [lang, setLang] = useState('en');
   const tr = translations[lang];

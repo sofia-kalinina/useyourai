@@ -1,0 +1,113 @@
+.auth-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.auth-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.auth-card h2 {
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.auth-card .auth-subtitle {
+  margin: 0 0 24px;
+  font-size: 0.88rem;
+  color: #6b7280;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.auth-field label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.auth-field input {
+  padding: 11px 16px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-field input:focus {
+  border-color: #61DAFB;
+  box-shadow: 0 0 0 3px rgba(97, 218, 251, 0.2);
+}
+
+.auth-error {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #dc2626;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #61DAFB 0%, #38c9f0 100%);
+  color: #0a2a35;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 0.15s, box-shadow 0.15s;
+  box-shadow: 0 3px 10px rgba(97, 218, 251, 0.4);
+  margin-top: 6px;
+}
+
+.auth-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  box-shadow: 0 4px 14px rgba(97, 218, 251, 0.5);
+}
+
+.auth-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.auth-switch {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.auth-switch button {
+  background: none;
+  border: none;
+  color: #0ea5c9;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
