@@ -6,29 +6,21 @@ import './App.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userId, setUserId] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     refreshSession()
-      .then(({ sub }) => {
-        setUserId(sub);
-        setIsAuthenticated(true);
-      })
-      .catch(() => {
-        setIsAuthenticated(false);
-      })
+      .then(() => setIsAuthenticated(true))
+      .catch(() => setIsAuthenticated(false))
       .finally(() => setAuthChecked(true));
   }, []);
 
-  const handleAuthenticated = (sub) => {
-    setUserId(sub);
+  const handleAuthenticated = () => {
     setIsAuthenticated(true);
   };
 
   const handleSignOut = () => {
     signOut();
-    setUserId(null);
     setIsAuthenticated(false);
   };
 

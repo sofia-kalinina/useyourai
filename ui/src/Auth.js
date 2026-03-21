@@ -45,8 +45,8 @@ const Auth = ({ onAuthenticated }) => {
     setIsLoading(true);
     clearError();
     try {
-      const { sub } = await signIn(email, password);
-      onAuthenticated(sub);
+      await signIn(email, password);
+      onAuthenticated();
     } catch (err) {
       setError(err.message || 'Sign-in failed');
     } finally {
