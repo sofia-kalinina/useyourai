@@ -84,6 +84,10 @@ def lambda_handler(event, context):
     if not session_item:
         return {"statusCode": 404, "body": json.dumps({"error": "Parent session not found"})}
 
+    caller_sub = (event.get('requestContext') or {}).get('authorizer', {}).get('jwt', {}).get('claims', {}).get('sub')
+    if session_item.get('user_id') and caller_sub and session_item['user_id'] != caller_sub:
+        return {"statusCode": 403, "body": json.dumps({"error": "Forbidden"})}
+
     level = session_item.get('level', 'B1')
     feedback_mode = session_item.get('feedback_mode', 'end')
     lang = session_item.get('lang', 'en')

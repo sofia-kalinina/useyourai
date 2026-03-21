@@ -262,6 +262,22 @@ def test_session_not_found_returns_404(seeded_table):
     assert response["statusCode"] == 404
 
 
+def test_wrong_user_returns_403(dynamodb_table):
+    seed_session(dynamodb_table)
+    dynamodb_table.update_item(
+        Key={"session_id": SESSION_ID, "question_id": "SESSION"},
+        UpdateExpression="SET user_id = :uid",
+        ExpressionAttributeValues={":uid": "owner-sub"},
+    )
+    event = {
+        "pathParameters": {"id": SESSION_ID},
+        "body": json.dumps({"exercise_id": "01", "answer": "x"}),
+        "requestContext": {"authorizer": {"jwt": {"claims": {"sub": "different-sub"}}}},
+    }
+    response = submit_answer.lambda_handler(event, {})
+    assert response["statusCode"] == 403
+
+
 def test_session_complete_returns_409(seeded_table):
     seeded_table.update_item(
         Key={"session_id": SESSION_ID, "question_id": "SESSION"},

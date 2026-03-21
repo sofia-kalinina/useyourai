@@ -55,3 +55,14 @@ export const refreshSession = () =>
       resolve({ sub: session.getIdToken().payload.sub });
     });
   });
+
+// Returns the access token JWT string for the current session, or rejects.
+export const getAccessToken = () =>
+  new Promise((resolve, reject) => {
+    const user = getUserPool().getCurrentUser();
+    if (!user) { reject(new Error('No current user')); return; }
+    user.getSession((err, session) => {
+      if (err || !session?.isValid()) { reject(err || new Error('Invalid session')); return; }
+      resolve(session.getAccessToken().getJwtToken());
+    });
+  });

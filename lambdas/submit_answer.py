@@ -98,6 +98,10 @@ def lambda_handler(event, context):
     if not session_item:
         return {"statusCode": 404, "body": json.dumps({"error": "Session not found"})}
 
+    caller_sub = (event.get('requestContext') or {}).get('authorizer', {}).get('jwt', {}).get('claims', {}).get('sub')
+    if session_item.get('user_id') and caller_sub and session_item['user_id'] != caller_sub:
+        return {"statusCode": 403, "body": json.dumps({"error": "Forbidden"})}
+
     if session_item.get('status') != 'active':
         return {"statusCode": 409, "body": json.dumps({"error": "Session is already complete"})}
 

@@ -3,10 +3,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import Message from './Message';
 import translations from './translations';
+import { getAccessToken } from './cognito';
 import './Chat.css';
 
-const Chat = ({ userId }) => {
+const Chat = () => {
   const API_URL = window.ENV?.API_URL;
+
+  const authHeaders = async () => {
+    const token = await getAccessToken();
+    return { Authorization: `Bearer ${token}` };
+  };
 
   const [lang, setLang] = useState('en');
   const tr = translations[lang];
@@ -64,9 +70,10 @@ const Chat = ({ userId }) => {
   const handleRetry = async () => {
     setIsLoading(true);
     try {
+      const headers = await authHeaders();
       const response = await axios.post(`${API_URL}/session/${pendingSessionId}/retry`, {
         mistakes: pendingMistakes,
-      });
+      }, { headers });
       const { session_id, exercise } = response.data;
       setPendingMistakes(null);
       setPendingSessionId(null);
@@ -86,13 +93,13 @@ const Chat = ({ userId }) => {
     setPendingMistakes(null);
     setPendingSessionId(null);
     try {
+      const headers = await authHeaders();
       const response = await axios.post(`${API_URL}/session`, {
         prompt,
         level,
         feedback_mode: feedbackMode,
         lang,
-        user_id: userId,
-      });
+      }, { headers });
       const { session_id, exercise } = response.data;
       setSessionId(session_id);
       setAnswersSubmitted(0);
@@ -106,10 +113,11 @@ const Chat = ({ userId }) => {
 
   const handleSubmitAnswer = async (answer) => {
     try {
+      const headers = await authHeaders();
       const response = await axios.post(`${API_URL}/session/${sessionId}/answer`, {
         exercise_id: currentExerciseId,
         answer,
-      });
+      }, { headers });
       const { is_correct, feedback, next_exercise, mistakes } = response.data;
 
       if (feedbackMode === 'each') {
