@@ -1,3 +1,13 @@
+variable "cognito_user_pool_endpoint" {
+  description = "Cognito User Pool issuer URL for the JWT authorizer"
+  type        = string
+}
+
+variable "cognito_user_pool_client_id" {
+  description = "Cognito User Pool Client ID used as the JWT audience"
+  type        = string
+}
+
 variable "cdn_url" {
   description = "CDN url"
   type        = string
