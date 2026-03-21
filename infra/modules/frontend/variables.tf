@@ -23,6 +23,12 @@ variable "hosted_zone_id" {
   description = "ID of Route53 hosted zone to create record"
 }
 
+variable "github_actions_role_name" {
+  description = "Name of the shared IAM role used by GitHub Actions (managed by the base workspace)"
+  type        = string
+  default     = ""
+}
+
 variable "managed_by_github_actions" {
   description = "If true, GitHub actions will have permissions to change the resources"
   type        = bool

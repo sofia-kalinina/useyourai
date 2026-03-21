@@ -1,60 +1,24 @@
-## TODO: extend to work with prod env, possibly move to a separate module
-
-resource "aws_iam_openid_connect_provider" "github" {
-  count = var.managed_by_github_actions ? 1 : 0
-  url   = "https://token.actions.githubusercontent.com"
-
-  client_id_list = [
-    "sts.amazonaws.com"
-  ]
-
-  thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1",
-    "1c58a3a8518e8759bf075b76b750d4f2df264fcd"
-  ]
-
-  tags = {
-    Name = "GitHub Actions OIDC"
+# The OIDC provider and shared IAM role are account-global resources managed by
+# the base workspace. Remove them from per-environment state without destroying
+# the underlying AWS resources.
+removed {
+  from = aws_iam_openid_connect_provider.github
+  lifecycle {
+    destroy = false
   }
 }
 
-resource "aws_iam_role" "github_actions" {
-  count = var.managed_by_github_actions ? 1 : 0
-  name  = "useyourai-github-actions-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Federated = aws_iam_openid_connect_provider.github[count.index].arn
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          }
-          StringLike = {
-            "token.actions.githubusercontent.com:sub" = [
-              "repo:sofia-kalinina/useyourai:ref:refs/heads/main",
-              "repo:sofia-kalinina/useyourai:pull_request"
-            ]
-          }
-        }
-      }
-    ]
-  })
-
-  tags = {
-    Purpose = "GitHub Actions deployment"
+removed {
+  from = aws_iam_role.github_actions
+  lifecycle {
+    destroy = false
   }
 }
 
 resource "aws_iam_policy" "github_deploy" {
   count       = var.managed_by_github_actions ? 1 : 0
-  name        = "useyourai-repo-github-deploy-policy"
-  description = "Allow S3 deployment and CloudFront invalidation"
+  name        = "${var.project_name}-${var.environment}-github-deploy-policy"
+  description = "Allow S3 deployment and CloudFront invalidation for ${var.environment}"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -89,6 +53,6 @@ resource "aws_iam_policy" "github_deploy" {
 
 resource "aws_iam_role_policy_attachment" "github_deploy" {
   count      = var.managed_by_github_actions ? 1 : 0
-  role       = aws_iam_role.github_actions[count.index].name
-  policy_arn = aws_iam_policy.github_deploy[count.index].arn
+  role       = var.github_actions_role_name
+  policy_arn = aws_iam_policy.github_deploy[0].arn
 }
