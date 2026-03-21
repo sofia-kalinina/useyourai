@@ -38,7 +38,6 @@ Return ONLY valid JSON in this exact format, with no other text before or after:
 }"""
 
 MAX_PROMPT_LENGTH = 500
-MAX_USER_ID_LENGTH = 128
 VALID_LEVELS = {"A1", "A2", "B1", "B2", "C1", "C2"}
 VALID_FEEDBACK_MODES = {"each", "end"}
 VALID_LANGS = {"en", "uk"}
@@ -62,7 +61,7 @@ def lambda_handler(event, context):
     level = body.get('level')
     feedback_mode = body.get('feedback_mode')
     lang = body.get('lang', 'en')
-    user_id = body.get('user_id')
+    user_id = (event.get('requestContext') or {}).get('authorizer', {}).get('jwt', {}).get('claims', {}).get('sub')
 
     if not prompt:
         return {"statusCode": 400, "body": json.dumps({"error": "'prompt' is required"})}
@@ -74,10 +73,7 @@ def lambda_handler(event, context):
         return {"statusCode": 400, "body": json.dumps({"error": f"'feedback_mode' must be one of: {', '.join(sorted(VALID_FEEDBACK_MODES))}"})}
     if lang not in VALID_LANGS:
         return {"statusCode": 400, "body": json.dumps({"error": f"'lang' must be one of: {', '.join(sorted(VALID_LANGS))}"})}
-    if not user_id or not isinstance(user_id, str):
-        return {"statusCode": 400, "body": json.dumps({"error": "'user_id' is required"})}
-    if len(user_id) > MAX_USER_ID_LENGTH:
-        return {"statusCode": 400, "body": json.dumps({"error": f"'user_id' must be {MAX_USER_ID_LENGTH} characters or fewer"})}
+
 
 
     try:
