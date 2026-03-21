@@ -1,9 +1,39 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Chat from './Chat';
+import Auth from './Auth';
+import { refreshSession, signOut } from './cognito';
 import './App.css';
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    refreshSession()
+      .then(({ sub }) => {
+        setUserId(sub);
+        setIsAuthenticated(true);
+      })
+      .catch(() => {
+        setIsAuthenticated(false);
+      })
+      .finally(() => setAuthChecked(true));
+  }, []);
+
+  const handleAuthenticated = (sub) => {
+    setUserId(sub);
+    setIsAuthenticated(true);
+  };
+
+  const handleSignOut = () => {
+    signOut();
+    setUserId(null);
+    setIsAuthenticated(false);
+  };
+
+  if (!authChecked) return null;
+
   return (
     <div className="App">
       <header className="App-header">
@@ -15,8 +45,16 @@ function App() {
           </svg>
         </h1>
         <p className="App-tagline">AI-powered language practice</p>
+        {isAuthenticated && (
+          <button className="signout-btn" onClick={handleSignOut} aria-label="Sign out">
+            Sign out
+          </button>
+        )}
       </header>
-      <Chat />
+      {isAuthenticated
+        ? <Chat userId={userId} />
+        : <Auth onAuthenticated={handleAuthenticated} />
+      }
     </div>
   );
 }
