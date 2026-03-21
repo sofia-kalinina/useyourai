@@ -52,7 +52,7 @@ function App() {
         )}
       </header>
       {isAuthenticated
-        ? <Chat userId={userId} />
+        ? <Chat />
         : <Auth onAuthenticated={handleAuthenticated} />
       }
     </div>
