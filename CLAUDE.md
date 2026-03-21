@@ -35,8 +35,6 @@ Lambda functions (Python 3.11, region `eu-central-1`):
 - `create_session.py` — receives `{ prompt, level, feedback_mode, lang }`, calls Claude via Bedrock to generate structured exercises, persists session metadata + all exercises to DynamoDB, returns `session_id` + first exercise
 - `submit_answer.py` — receives `{ exercise_id, answer }` via `POST /session/{id}/answer`, evaluates the answer with Claude, saves result to DynamoDB, returns `is_correct` + optional `feedback` + `next_exercise` (null when session complete, also returns `mistakes`). Feedback fires after each answer (`feedback_mode=each`) or only at session end (`feedback_mode=end`)
 - `retry_session.py` — receives `{ mistakes }` via `POST /session/{id}/retry`, generates a targeted exercise set via Claude addressing the user's wrong answers, creates a child session (linked via `parent_session_id`), inherits `level`/`feedback_mode`/`lang`/`user_id` from parent, returns `session_id` + first exercise
-- `init_session.py` — placeholder, pre-plan (to be removed)
-- `test_bedrock.py` — placeholder, pre-plan (to be removed)
 
 DynamoDB table: `{project_name}-{environment}-table-language-learning` (composite key: `session_id` + `question_id`). The table name is passed to Lambda via the `TABLE_NAME` env var, sourced from the DynamoDB Terraform module output. See @docs/dynamodb_schema.md for item structure.
 
@@ -44,8 +42,6 @@ DynamoDB table: `{project_name}-{environment}-table-language-learning` (composit
 - `POST /session` → create_session
 - `POST /session/{id}/answer` → submit_answer
 - `POST /session/{id}/retry` → retry_session
-- `POST /init` → init_session (placeholder)
-- `POST /test` → test_bedrock (placeholder)
 
 CORS allows the CloudFront URL and custom domain. Domain is passed as a variable to the API Gateway module so CORS origins stay in sync.
 
