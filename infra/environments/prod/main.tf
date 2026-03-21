@@ -1,3 +1,8 @@
+data "tfe_outputs" "base_outputs" {
+  organization = "sofiia-kalinina"
+  workspace    = "useyourai-base"
+}
+
 locals {
   project_name = var.project_name
   common_tags = {
@@ -6,6 +11,22 @@ locals {
     ManagedBy   = "Terraform"
   }
   name_prefix = "${local.project_name}-${var.environment}"
+}
+
+module "frontend" {
+  source = "../../modules/frontend"
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+
+  common_tags               = local.common_tags
+  domain_name               = var.domain_name
+  environment               = var.environment
+  hosted_zone_id            = data.tfe_outputs.base_outputs.values.hosted_zone_id
+  certificate_arn           = data.tfe_outputs.base_outputs.values.prod_certificate_arn
+  project_name              = var.project_name
+  managed_by_github_actions = true
 }
 
 module "cognito" {
@@ -42,8 +63,11 @@ module "api_gateway" {
   environment                 = var.environment
   project_name                = var.project_name
   common_tags                 = local.common_tags
+  cdn_url                     = module.frontend.cdn_url
+  custom_domain_name          = var.domain_name
   cognito_user_pool_endpoint  = module.cognito.user_pool_endpoint
   cognito_user_pool_client_id = module.cognito.user_pool_client_id
+
   lambdas = [
     {
       name       = module.lambdas.create_session_lambda_name
