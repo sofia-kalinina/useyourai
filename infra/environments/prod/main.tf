@@ -39,9 +39,11 @@ module "lambdas" {
 module "api_gateway" {
   source = "../../modules/api_gateway"
 
-  environment  = var.environment
-  project_name = var.project_name
-  common_tags  = local.common_tags
+  environment                 = var.environment
+  project_name                = var.project_name
+  common_tags                 = local.common_tags
+  cognito_user_pool_endpoint  = module.cognito.user_pool_endpoint
+  cognito_user_pool_client_id = module.cognito.user_pool_client_id
   lambdas = [
     {
       name       = module.lambdas.create_session_lambda_name
