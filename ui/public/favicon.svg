@@ -1,4 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <path d="M15,0 H85 C93,0 100,7 100,15 V60 C100,68 93,75 85,75 H30 L10,98 L22,75 H15 C7,75 0,68 0,60 V15 C0,7 7,0 15,0 Z" fill="#61DAFB"/>
-  <text x="50%" y="38%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#282c34" font-weight="bold">ai</text>
+  <text x="50%" y="40%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="58" fill="#282c34" font-weight="bold">ai</text>
 </svg>
