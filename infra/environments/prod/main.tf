@@ -27,6 +27,7 @@ module "frontend" {
   certificate_arn           = data.tfe_outputs.base_outputs.values.prod_certificate_arn
   project_name              = var.project_name
   managed_by_github_actions = true
+  github_actions_role_name  = data.tfe_outputs.base_outputs.values.github_actions_role_name
 }
 
 module "cognito" {

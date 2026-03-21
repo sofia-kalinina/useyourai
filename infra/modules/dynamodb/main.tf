@@ -2,8 +2,15 @@ resource "aws_dynamodb_table" "language_learning" {
   name         = "${var.project_name}-${var.environment}-table-language-learning"
   billing_mode = "PAY_PER_REQUEST"
 
-  hash_key  = "session_id"
-  range_key = "question_id"
+  key_schema {
+    attribute_name = "session_id"
+    key_type       = "HASH"
+  }
+
+  key_schema {
+    attribute_name = "question_id"
+    key_type       = "RANGE"
+  }
 
   attribute {
     name = "session_id"
@@ -22,9 +29,17 @@ resource "aws_dynamodb_table" "language_learning" {
 
   global_secondary_index {
     name            = "by-user"
-    hash_key        = "user_id"
-    range_key       = "session_id"
     projection_type = "ALL"
+
+    key_schema {
+      attribute_name = "user_id"
+      key_type       = "HASH"
+    }
+
+    key_schema {
+      attribute_name = "session_id"
+      key_type       = "RANGE"
+    }
   }
 
   ttl {

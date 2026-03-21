@@ -1,3 +1,8 @@
+output "github_actions_role_name" {
+  description = "Name of the shared IAM role used by GitHub Actions across all environments"
+  value       = aws_iam_role.github_actions.name
+}
+
 output "prod_certificate_arn" {
   description = "ARN of the validated certificate for the prod environment"
   value       = var.create_certificate ? aws_acm_certificate_validation.prod_certificate_validation[0].certificate_arn : null
