@@ -3,7 +3,13 @@ terraform {
     organization = "sofiia-kalinina"
 
     workspaces {
-      name = "useyourai-${var.environment}"
+      name = "useyourai-prod"
+    }
+  }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 6.20"
     }
   }
 }

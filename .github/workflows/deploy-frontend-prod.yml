@@ -1,17 +1,11 @@
-name: Deploy Frontend
+name: Deploy Frontend (prod)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'ui/**'
-      - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 
 env:
   AWS_REGION: eu-central-1
-  TFC_WORKSPACE: ${{ vars.TFC_WORKSPACE_DEV }}
+  TFC_WORKSPACE: ${{ vars.TFC_WORKSPACE_PROD }}
 
 # Required for OIDC
 permissions:
@@ -106,7 +100,7 @@ jobs:
         run: |
           cat > ui/public/config.js <<EOF
           window.ENV = {
-            API_URL: '${{ steps.fetch_outputs.outputs.api_gateway_url }}/dev',
+            API_URL: '${{ steps.fetch_outputs.outputs.api_gateway_url }}/prod',
             COGNITO_USER_POOL_ID: '${{ steps.fetch_outputs.outputs.cognito_user_pool_id }}',
             COGNITO_CLIENT_ID: '${{ steps.fetch_outputs.outputs.cognito_client_id }}'
           };
@@ -133,7 +127,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7.0.0
         with:
-          name: frontend-build
+          name: frontend-build-prod
           path: ui/build/
           retention-days: 1
 
@@ -148,7 +142,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v8.0.1
         with:
-          name: frontend-build
+          name: frontend-build-prod
           path: ui/build/
 
       - name: Configure AWS credentials via OIDC
