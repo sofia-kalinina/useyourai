@@ -15,6 +15,8 @@ resource "aws_cognito_user_pool" "main" {
 
   verification_message_template {
     default_email_option = "CONFIRM_WITH_CODE"
+    email_subject        = "Your useyourai confirmation code"
+    email_message        = "Welcome to useyourai! Your confirmation code is {####}"
   }
 
   tags = merge(var.common_tags, {
