@@ -40,6 +40,33 @@ export const signIn = (email, password) =>
     });
   });
 
+export const resendConfirmationCode = (email) =>
+  new Promise((resolve, reject) => {
+    const user = new CognitoUser({ Username: email, Pool: getUserPool() });
+    user.resendConfirmationCode((err, result) => {
+      if (err) reject(err);
+      else resolve(result);
+    });
+  });
+
+export const forgotPassword = (email) =>
+  new Promise((resolve, reject) => {
+    const user = new CognitoUser({ Username: email, Pool: getUserPool() });
+    user.forgotPassword({
+      onSuccess: resolve,
+      onFailure: reject,
+    });
+  });
+
+export const confirmForgotPassword = (email, code, newPassword) =>
+  new Promise((resolve, reject) => {
+    const user = new CognitoUser({ Username: email, Pool: getUserPool() });
+    user.confirmPassword(code, newPassword, {
+      onSuccess: resolve,
+      onFailure: reject,
+    });
+  });
+
 export const signOut = () => {
   const user = getUserPool().getCurrentUser();
   if (user) user.signOut();

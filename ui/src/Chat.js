@@ -6,12 +6,17 @@ import translations from './translations';
 import { getAccessToken } from './cognito';
 import './Chat.css';
 
-const Chat = () => {
+const Chat = ({ onAuthError }) => {
   const API_URL = window.ENV?.API_URL;
 
   const authHeaders = async () => {
-    const token = await getAccessToken();
-    return { Authorization: `Bearer ${token}` };
+    try {
+      const token = await getAccessToken();
+      return { Authorization: `Bearer ${token}` };
+    } catch {
+      onAuthError();
+      throw new Error('Session expired');
+    }
   };
 
   const [lang, setLang] = useState('en');
