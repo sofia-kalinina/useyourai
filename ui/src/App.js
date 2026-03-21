@@ -52,7 +52,7 @@ function App() {
         )}
       </header>
       {isAuthenticated
-        ? <Chat />
+        ? <Chat onAuthError={handleSignOut} />
         : <Auth onAuthenticated={handleAuthenticated} />
       }
     </div>

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { signUp, confirmRegistration, signIn } from './cognito';
+import { signUp, confirmRegistration, signIn, resendConfirmationCode, forgotPassword, confirmForgotPassword } from './cognito';
 import './Auth.css';
 
 const Auth = ({ onAuthenticated }) => {
-  const [view, setView] = useState('signin'); // 'signin' | 'signup' | 'confirm'
+  const [view, setView] = useState('signin'); // 'signin' | 'signup' | 'confirm' | 'forgot' | 'reset'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
@@ -49,6 +49,48 @@ const Auth = ({ onAuthenticated }) => {
       onAuthenticated(sub);
     } catch (err) {
       setError(err.message || 'Sign-in failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setIsLoading(true);
+    clearError();
+    try {
+      await resendConfirmationCode(email);
+    } catch (err) {
+      setError(err.message || 'Failed to resend code');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    clearError();
+    try {
+      await forgotPassword(email);
+      setView('reset');
+    } catch (err) {
+      setError(err.message || 'Failed to send reset code');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    clearError();
+    try {
+      await confirmForgotPassword(email, code, password);
+      setCode('');
+      setPassword('');
+      setView('signin');
+    } catch (err) {
+      setError(err.message || 'Failed to reset password');
     } finally {
       setIsLoading(false);
     }
@@ -118,6 +160,78 @@ const Auth = ({ onAuthenticated }) => {
               {isLoading ? 'Confirming…' : 'Confirm'}
             </button>
           </form>
+          <div className="auth-switch">
+            Didn't receive a code?{' '}
+            <button onClick={handleResendCode} disabled={isLoading}>Resend</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'forgot') {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <h2>Reset password</h2>
+          <p className="auth-subtitle">Enter your email and we'll send a reset code</p>
+          {error && <p className="auth-error">{error}</p>}
+          <form onSubmit={handleForgotPassword}>
+            <div className="auth-field">
+              <label>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+            <button className="auth-btn" type="submit" disabled={isLoading}>
+              {isLoading ? 'Sending…' : 'Send reset code'}
+            </button>
+          </form>
+          <div className="auth-switch">
+            <button onClick={() => { clearError(); setView('signin'); }}>Back to sign in</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'reset') {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <h2>Set new password</h2>
+          <p className="auth-subtitle">Enter the code we sent to {email}</p>
+          {error && <p className="auth-error">{error}</p>}
+          <form onSubmit={handleResetPassword}>
+            <div className="auth-field">
+              <label>Reset code</label>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                required
+                autoComplete="one-time-code"
+                inputMode="numeric"
+              />
+            </div>
+            <div className="auth-field">
+              <label>New password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="new-password"
+              />
+            </div>
+            <button className="auth-btn" type="submit" disabled={isLoading}>
+              {isLoading ? 'Resetting…' : 'Set new password'}
+            </button>
+          </form>
         </div>
       </div>
     );
@@ -158,6 +272,9 @@ const Auth = ({ onAuthenticated }) => {
         <div className="auth-switch">
           No account yet?{' '}
           <button onClick={() => { clearError(); setView('signup'); }}>Create one</button>
+        </div>
+        <div className="auth-switch">
+          <button onClick={() => { clearError(); setView('forgot'); }}>Forgot password?</button>
         </div>
       </div>
     </div>
