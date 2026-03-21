@@ -42,7 +42,12 @@ const Chat = () => {
 
   useEffect(() => {
     if (!isLoading) {
-      inputRef.current?.blur();
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      if (isTouchDevice) {
+        inputRef.current?.blur();
+      } else {
+        inputRef.current?.focus();
+      }
     }
   }, [isLoading]);
 
