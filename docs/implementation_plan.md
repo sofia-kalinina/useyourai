@@ -5,7 +5,7 @@
 ### `POST /session`
 Creates a session and generates all exercises in one step.
 
-- Receives: `{ prompt, feedback_every_n }` — **`feedback_every_n` being replaced by `level` + `feedback_mode` (issues #65, #66)**
+- Receives: `{ prompt, level, feedback_mode, lang }`
 - Calls Claude with the user's free-text prompt, asks for structured JSON:
   ```json
   {
@@ -29,7 +29,7 @@ The core practice loop.
 
 - Receives: `{ exercise_id, answer }`
 - Saves the answer, marks it correct/incorrect (Claude evaluation)
-- Feedback behaviour controlled by `feedback_every_n` on session item — **being redesigned: feedback will fire after each answer or at end of session only, controlled by `feedback_mode` (issue #66)**
+- Feedback fires after each answer (`feedback_mode=each`) or at end of session only (`feedback_mode=end`)
 - Returns:
   ```json
   {
@@ -58,7 +58,7 @@ One table, two item types (composite key: `session_id` PK + `question_id` SK):
 
 | question_id | Item type | Key fields |
 |---|---|---|
-| `SESSION` | Session metadata | `topic`, `category`, `language`, `feedback_every_n`, `status`, `ttl`, `parent_session_id` |
+| `SESSION` | Session metadata | `topic`, `category`, `language`, `level`, `feedback_mode`, `lang`, `user_id`, `status`, `ttl`, `parent_session_id` |
 | `01`, `02`, ... | Exercise | `question`, `expected_answer`, `user_answer`, `is_correct`, `feedback` |
 
 ---
@@ -75,11 +75,11 @@ One table, two item types (composite key: `session_id` PK + `question_id` SK):
 
 ## Frontend Flow
 
-1. User selects level (A1–C2) and feedback mode ("after each answer" / "at the end") from UI controls — **pending issue #65**
+1. User selects level (A1–C2) and feedback mode ("after each answer" / "at the end") from UI pill selectors
 2. User types free-text prompt → `POST /session` → display first exercise
 3. User submits answer → `POST /session/{id}/answer` → display feedback (if triggered) + next exercise
-4. Session complete → show mistakes summary + feedback, reset to prompt state
-5. *(planned)* Show "Retry mistakes?" prompt → `POST /session/{id}/retry` → new exercise set begins
+4. Session complete → show mistakes summary + feedback, "Retry mistakes?" prompt shown
+5. User accepts retry → `POST /session/{id}/retry` → new exercise set begins
 
 ---
 
@@ -105,10 +105,10 @@ One table, two item types (composite key: `session_id` PK + `question_id` SK):
 7. Integration test: full practice cycle end-to-end
 
 ### Sprint 3 — Retry & Hardening
-8. Implement `retrySessionLambda` (`POST /session/{id}/retry`)
+8. ✅ Implement `retrySessionLambda` (`POST /session/{id}/retry`)
 9. Secure API Gateway
 10. Add prod environment
 11. CloudWatch structured logging across all Lambdas
 12. ✅ Harden Lambdas against prompt injection (XML tag wrapping, length caps, schema validation) — issue #67
-13. Add level selector + feedback mode UI controls — issue #65
-14. Replace `feedback_every_n` with `level` + `feedback_mode` params — issue #66
+13. ✅ Add level selector + feedback mode UI controls — issue #65
+14. ✅ Replace `feedback_every_n` with `level` + `feedback_mode` params — issue #66
