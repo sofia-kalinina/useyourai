@@ -1,3 +1,35 @@
+resource "aws_cloudfront_response_headers_policy" "security_headers" {
+  name = "${var.project_name}-${var.environment}-security-headers"
+
+  security_headers_config {
+    strict_transport_security {
+      access_control_max_age_sec = 63072000 # 2 years
+      include_subdomains         = true
+      preload                    = true
+      override                   = true
+    }
+
+    content_type_options {
+      override = true
+    }
+
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+
+    content_security_policy {
+      content_security_policy = "default-src 'self'; connect-src 'self' https://*.execute-api.eu-central-1.amazonaws.com https://cognito-idp.eu-central-1.amazonaws.com; img-src 'self' data:; font-src 'self'; object-src 'none'; frame-ancestors 'none'"
+      override                = true
+    }
+  }
+}
+
 resource "aws_cloudfront_origin_access_control" "frontend_oac" {
   name                              = "${var.project_name}-${var.environment}-frontend-oac"
   description                       = "OAC for ${var.project_name} frontend ${var.environment}"
@@ -22,13 +54,34 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
     origin_access_control_id = aws_cloudfront_origin_access_control.frontend_oac.id
   }
 
+  # config.js carries runtime config (API URL, Cognito IDs) — must never be served stale
+  ordered_cache_behavior {
+    path_pattern           = "/config.js"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = aws_s3_bucket.frontend_bucket.id
+    viewer_protocol_policy = "redirect-to-https"
+
+    min_ttl     = 0
+    default_ttl = 0
+    max_ttl     = 0
+
+    forwarded_values {
+      query_string = false
+      cookies {
+        forward = "none"
+      }
+    }
+
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security_headers.id
+  }
+
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD", "OPTIONS"]
     cached_methods         = ["GET", "HEAD"]
     target_origin_id       = aws_s3_bucket.frontend_bucket.id
-    viewer_protocol_policy = "redirect-to-https" # Force HTTPS
+    viewer_protocol_policy = "redirect-to-https"
 
-    # These settings are good for caching static assets
     min_ttl     = 0
     default_ttl = 86400    # 1 day
     max_ttl     = 31536000 # 1 year
@@ -39,6 +92,8 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
         forward = "none"
       }
     }
+
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.security_headers.id
   }
 
   # SSL/TLS Certificate
