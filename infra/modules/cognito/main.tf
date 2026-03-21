@@ -17,12 +17,6 @@ resource "aws_cognito_user_pool" "main" {
     default_email_option = "CONFIRM_WITH_CODE"
   }
 
-  token_validity_units {
-    access_token  = "hours"
-    id_token      = "hours"
-    refresh_token = "days"
-  }
-
   tags = merge(var.common_tags, {
     Name = "${var.project_name}-${var.environment}-user-pool"
   })
