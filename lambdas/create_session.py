@@ -63,6 +63,9 @@ def lambda_handler(event, context):
     lang = body.get('lang', 'en')
     user_id = (event.get('requestContext') or {}).get('authorizer', {}).get('jwt', {}).get('claims', {}).get('sub')
 
+    if not user_id:
+        return {"statusCode": 401, "body": json.dumps({"error": "Unauthorized"})}
+
     if not prompt:
         return {"statusCode": 400, "body": json.dumps({"error": "'prompt' is required"})}
     if len(prompt) > MAX_PROMPT_LENGTH:
