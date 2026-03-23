@@ -1,0 +1,19 @@
+name: Deploy Frontend (dev)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ui/**'
+      - '.github/workflows/deploy-frontend-dev.yml'
+      - '.github/workflows/deploy-frontend-shared.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-frontend-shared.yml
+    with:
+      tfc_workspace: ${{ vars.TFC_WORKSPACE_DEV }}
+      api_stage: dev
+    secrets: inherit
