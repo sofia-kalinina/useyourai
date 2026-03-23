@@ -1,5 +1,3 @@
-name: Deploy Frontend (shared)
-
 on:
   workflow_call:
     inputs:
