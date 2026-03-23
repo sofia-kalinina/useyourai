@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - 'ui/**'
-      - '.github/workflows/deploy-frontend.yml'
+      - '.github/workflows/deploy-frontend-dev.yml'
       - '.github/workflows/deploy-frontend-shared.yml'
   workflow_dispatch:
 
