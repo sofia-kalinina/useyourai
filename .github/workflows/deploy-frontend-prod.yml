@@ -3,6 +3,10 @@ name: Deploy Frontend (prod)
 on:
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     uses: ./.github/workflows/deploy-frontend-shared.yml
