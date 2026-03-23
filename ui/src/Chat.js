@@ -19,11 +19,13 @@ const Chat = ({ onAuthError }) => {
     }
   };
 
+  const welcomeIndex = useRef(Math.floor(Math.random() * translations.en.welcomeMessages.length));
+
   const [lang, setLang] = useState('en');
   const tr = translations[lang];
 
   const [messages, setMessages] = useState([
-    { text: translations.en.welcome, sender: 'system' },
+    { text: translations.en.welcomeMessages[welcomeIndex.current], sender: 'system' },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +57,7 @@ const Chat = ({ onAuthError }) => {
   // Update the welcome message text when language changes
   useEffect(() => {
     setMessages((prev) => [
-      { text: tr.welcome, sender: 'system' },
+      { text: tr.welcomeMessages[welcomeIndex.current], sender: 'system' },
       ...prev.slice(1),
     ]);
   }, [lang]); // eslint-disable-line react-hooks/exhaustive-deps
