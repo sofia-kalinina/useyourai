@@ -1,6 +1,12 @@
 const translations = {
   en: {
-    welcome: 'Welcome to useyourai! Ask for a set of exercises on any language topic — for example, "Give me 10 German accusative case exercises".',
+    welcomeMessages: [
+      'Welcome to useyourai! Ask for a set of exercises on any language topic — for example, "Give me 10 German accusative case exercises".',
+      'Ready to practise? Tell me what to drill — for example, "5 French subjunctive exercises, B2 level".',
+      'Let\'s get to work. What would you like to practise today?',
+      'Hi! Pick a topic and I\'ll generate exercises for you — try: "10 Spanish past tense exercises".',
+      'Good to see you. What language topic shall we tackle today?',
+    ],
     afterEach: 'After each',
     atTheEnd: 'At the end',
     placeholderAnswer: 'Type your answer...',
@@ -15,19 +21,25 @@ const translations = {
     error: 'Sorry, something went wrong. Please try again.',
   },
   uk: {
-    welcome: 'Ласкаво просимо до useyourai! Попросіть набір вправ на будь-яку мовну тему — наприклад, «Дайте мені 10 вправ на знахідний відмінок у німецькій».',
+    welcomeMessages: [
+      'Ласкаво просимо до useyourai! Попроси набір вправ на будь-яку мовну тему — наприклад, «Дай мені 10 вправ на знахідний відмінок у німецькій».',
+      'Готуєшся до практики? Скажи, що потрібно відпрацювати — наприклад, «5 вправ на французький субʼюнктив, рівень B2».',
+      'До роботи! Що хочеш попрактикувати сьогодні?',
+      'Привіт! Обери тему, і я складу для тебе вправи — спробуй: «10 вправ на іспанський минулий час».',
+      'Раді тебе бачити! Яку мовну тему опрацюємо сьогодні?',
+    ],
     afterEach: 'Після кожної',
     atTheEnd: 'Наприкінці',
-    placeholderAnswer: 'Введіть відповідь...',
-    placeholderPrompt: "Попросіть вправи, напр. «Дайте мені 5 вправ з прикметниками»",
+    placeholderAnswer: 'Введи відповідь...',
+    placeholderPrompt: "Попроси вправи, напр. «Дай мені 5 вправ з прикметниками»",
     correct: 'Правильно!',
     incorrect: 'Неправильно.',
     sessionComplete: (correct, total) => `Сесію завершено! Рахунок: ${correct}/${total}.`,
-    startNew: 'Розпочніть нову сесію, щоб продовжити практику.',
-    retryPrompt: (count) => `Ви помилилися ${count} рази. Хочете повторити?`,
+    startNew: 'Розпочни нову сесію, щоб продовжити практику.',
+    retryPrompt: (count) => `Є ${count} помилкових відповідей. Хочеш відпрацювати їх?`,
     retryYes: 'Повторити помилки',
     retryNo: 'Нова сесія',
-    error: 'Вибачте, щось пішло не так. Спробуйте ще раз.',
+    error: 'Вибач, щось пішло не так. Спробуй ще раз.',
   },
 };
 
