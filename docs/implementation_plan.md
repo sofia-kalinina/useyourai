@@ -106,9 +106,12 @@ One table, two item types (composite key: `session_id` PK + `question_id` SK):
 
 ### Sprint 3 — Retry & Hardening
 8. ✅ Implement `retrySessionLambda` (`POST /session/{id}/retry`)
-9. Secure API Gateway
-10. Add prod environment
-11. CloudWatch structured logging across all Lambdas
+9. ✅ Secure API Gateway — Cognito JWT authorizer on all routes (issue #99); `payload_format_version = "2.0"` on integrations
+10. ✅ Add prod environment — Terraform config + manual deploy workflow; base workspace owns shared IAM role and ACM certs
+11. CloudWatch structured logging across all Lambdas — issue #37
 12. ✅ Harden Lambdas against prompt injection (XML tag wrapping, length caps, schema validation) — issue #67
 13. ✅ Add level selector + feedback mode UI controls — issue #65
 14. ✅ Replace `feedback_every_n` with `level` + `feedback_mode` params — issue #66
+15. ✅ Add Cognito auth UI (sign-up, sign-in, confirm, forgot password, silent token refresh) — issue #95
+16. ✅ Harden CloudFront (security headers, S3 public access block, config.js no-cache) — issue #106
+17. ✅ Refactor deploy workflows into shared reusable workflow with fail-fast on empty TFC outputs
