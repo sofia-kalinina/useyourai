@@ -29,6 +29,7 @@ resource "aws_iam_role" "github_actions" {
           StringLike = {
             "token.actions.githubusercontent.com:sub" = [
               "repo:sofia-kalinina/useyourai:ref:refs/heads/main",
+              "repo:sofia-kalinina/useyourai:ref:refs/heads/main:workflow:*",
               "repo:sofia-kalinina/useyourai:pull_request"
             ]
           }
