@@ -36,11 +36,12 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
 }
 
 resource "aws_apigatewayv2_integration" "useyourai_lambdas_integration" {
-  for_each           = { for lambda in var.lambdas : lambda.name => lambda }
-  api_id             = aws_apigatewayv2_api.useyourai_api.id
-  integration_type   = "AWS_PROXY"
-  integration_uri    = each.value.invoke_arn
-  integration_method = "POST"
+  for_each               = { for lambda in var.lambdas : lambda.name => lambda }
+  api_id                 = aws_apigatewayv2_api.useyourai_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = each.value.invoke_arn
+  integration_method     = "POST"
+  payload_format_version = "2.0"
 }
 
 resource "aws_apigatewayv2_route" "useyourai_lambdas_route" {
