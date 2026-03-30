@@ -65,7 +65,6 @@ When the session ends, the app shows what you got wrong. Accept the retry prompt
 A few things baked in that are worth calling out:
 
 - **Prompt injection hardening** — all user-controlled strings are wrapped in XML tags (`<user_prompt>`, `<user_answer>`) before reaching Bedrock, and every system prompt explicitly instructs Claude to treat tagged content as data only. Input lengths are capped before the Bedrock call.
-- **No long-lived AWS credentials** — CI/CD uses GitHub Actions OIDC to assume an IAM role; no static keys stored anywhere.
 - **JWT-protected API** — all routes require a valid Cognito access token. The Lambda reads `user_id` from JWT claims, never from the request body.
 - **CloudFront security headers** — HSTS (2-year max-age), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, strict CSP.
 
@@ -134,6 +133,7 @@ The CI/CD pipeline:
 1. On push to `main` (changes to `ui/**`): GitHub Actions builds the React app and syncs it to S3, then invalidates the CloudFront cache. API URL and Cognito config are fetched from Terraform Cloud state outputs and injected into `config.js` at build time — nothing is hardcoded.
 2. Lambda code is deployed by Terraform when source files change (via a new TFC plan run triggered by a PR).
 3. Production deploys are manual (`workflow_dispatch` only).
+4. AWS authentication uses GitHub Actions OIDC — no long-lived credentials stored anywhere.
 
 > [!NOTE]
 > To deploy your own instance, you need a Terraform Cloud account, an AWS account, and a domain in Route53. Fork the repo, update the org/workspace names in `infra/environments/*/backend.tf`, set the required GitHub Actions secrets (`TFC_TOKEN`, `AWS_ROLE_ARN`) and variables (`TFC_WORKSPACE_DEV`, `TFC_WORKSPACE_PROD`), and run a plan from Terraform Cloud.
