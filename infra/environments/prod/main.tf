@@ -85,5 +85,10 @@ module "api_gateway" {
       invoke_arn = module.lambdas.retry_session_lambda_invoke_arn
       route_key  = "POST /session/{id}/retry"
     },
+    {
+      name       = module.lambdas.suggest_topic_lambda_name
+      invoke_arn = module.lambdas.suggest_topic_lambda_invoke_arn
+      route_key  = "POST /suggest"
+    },
   ]
 }

@@ -72,3 +72,20 @@ resource "aws_lambda_function" "retry_session_lambda" {
   tags = merge(var.common_tags, { Name = "${var.project_name}-${var.environment}-lambda-retry-session" })
 }
 
+data "archive_file" "suggest_topic_lambda" {
+  type        = "zip"
+  source_file = "../../../lambdas/suggest_topic.py"
+  output_path = "suggest_topic.zip"
+}
+
+resource "aws_lambda_function" "suggest_topic_lambda" {
+  filename         = "suggest_topic.zip"
+  function_name    = "${var.project_name}-${var.environment}-lambda-suggest-topic"
+  role             = aws_iam_role.lambda_exec_role.arn
+  handler          = "suggest_topic.lambda_handler"
+  timeout          = 30
+  source_code_hash = data.archive_file.suggest_topic_lambda.output_base64sha256
+  runtime          = "python3.11"
+  tags             = merge(var.common_tags, { Name = "${var.project_name}-${var.environment}-lambda-suggest-topic" })
+}
+

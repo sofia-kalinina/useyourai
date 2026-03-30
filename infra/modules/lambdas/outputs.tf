@@ -22,3 +22,11 @@ output "retry_session_lambda_invoke_arn" {
   value = aws_lambda_function.retry_session_lambda.invoke_arn
 }
 
+output "suggest_topic_lambda_name" {
+  value = aws_lambda_function.suggest_topic_lambda.function_name
+}
+
+output "suggest_topic_lambda_invoke_arn" {
+  value = aws_lambda_function.suggest_topic_lambda.invoke_arn
+}
+
