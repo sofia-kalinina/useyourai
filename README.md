@@ -6,6 +6,8 @@
 
 **Live:** [useyourai.eu](https://useyourai.eu) · **Dev:** [dev.useyourai.eu](https://dev.useyourai.eu)
 
+![useyourai demo](docs/assets/demo.gif)
+
 ---
 
 ## Features
