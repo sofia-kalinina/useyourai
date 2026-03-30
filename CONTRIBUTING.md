@@ -6,7 +6,7 @@ Thanks for your interest. This document covers how to set up the project locally
 
 ## Project overview
 
-Before diving in, read [README.md](README.md) for the architecture overview and [docs/implementation_plan.md](docs/implementation_plan.md) for the backend design decisions. The key principle: each Lambda is fully self-contained — no Lambda-to-Lambda calls, evaluation is inline with the request that needs it.
+Before diving in, read [README.md](README.md) for the architecture overview and [docs/implementation_plan.md](docs/implementation_plan.md) for the full Lambda and API design, including what the architecture deliberately avoids and why. The key principle: each Lambda is fully self-contained — no Lambda-to-Lambda calls, evaluation is inline with the request that needs it.
 
 ---
 

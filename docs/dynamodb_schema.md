@@ -35,7 +35,7 @@ One table, two item types — distinguished by the `question_id` value.
 | `topic` | S | Exercise topic (e.g. "German accusative case") |
 | `category` | S | Grammar category (e.g. "grammar") |
 | `language` | S | Target language (e.g. "German") |
-| `user_id` | S | Identifies the session owner; anonymous device UUID until Cognito is added |
+| `user_id` | S | Cognito `sub` claim — identifies the session owner |
 | `level` | S | Learner level passed to Claude (A1–C2) |
 | `feedback_mode` | S | When to generate feedback: `each` (after every answer) or `end` (at session end) |
 | `status` | S | Session state: `active` \| `complete` |
