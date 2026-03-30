@@ -1,117 +1,129 @@
-# Implementation Plan: Adaptive Language-Practice Session
+# Architecture: Adaptive Language-Practice Session
 
-## Architecture: 3 Lambdas, 3 Routes
+## Overview
 
-### `POST /session`
+Three Lambdas, three routes, no Lambda-to-Lambda calls. Each request is fully self-contained — evaluation and feedback are inline with the request that needs them.
+
+---
+
+## Lambdas
+
+### `POST /session` → `create_session.py`
+
 Creates a session and generates all exercises in one step.
 
-- Receives: `{ prompt, level, feedback_mode, lang }`
-- Calls Claude with the user's free-text prompt, asks for structured JSON:
-  ```json
-  {
-    "topic": "German accusative case",
-    "category": "grammar",
-    "language": "German",
-    "exercises": [
-      { "id": "01", "question": "...", "expected_answer": "..." }
-    ]
-  }
-  ```
-- Persists session metadata + all exercises to DynamoDB
-- Returns: `session_id` + first exercise
+**Request:**
+```json
+{ "prompt": "10 sentences to practice German accusative case", "level": "B1", "feedback_mode": "end", "lang": "en" }
+```
 
-**Note:** Topic/category/language extraction happens here — Claude parses the free-text prompt and returns structured metadata stored on the session record. No separate parsing Lambda needed.
+**What it does:**
+- Sends the user's free-text prompt to Claude, which returns structured exercise JSON including `topic`, `category`, `language`, and an `exercises` array
+- Validates the response schema before writing to DynamoDB
+- Persists a SESSION metadata item and one item per exercise
+- Returns `session_id` + first exercise (question only, no expected answer)
+
+**Claude's response shape:**
+```json
+{
+  "topic": "German accusative case",
+  "category": "grammar",
+  "language": "German",
+  "exercises": [
+    { "id": "01", "question": "...", "expected_answer": "..." }
+  ]
+}
+```
+
+**Inputs validated:** `prompt` (required, ≤500 chars), `level` (A1–C2), `feedback_mode` (`each`|`end`), `lang` (`en`|`uk`). `user_id` is read from the Cognito JWT claim — never from the request body.
 
 ---
 
-### `POST /session/{id}/answer`
+### `POST /session/{id}/answer` → `submit_answer.py`
+
 The core practice loop.
 
-- Receives: `{ exercise_id, answer }`
-- Saves the answer, marks it correct/incorrect (Claude evaluation)
-- Feedback fires after each answer (`feedback_mode=each`) or at end of session only (`feedback_mode=end`)
-- Returns:
-  ```json
-  {
-    "is_correct": true,
-    "feedback": "...",      // only present when evaluation triggered
-    "next_exercise": {...}  // null when session is complete
-  }
-  ```
-- When `next_exercise` is null, also returns `mistakes: [...]` (list of incorrectly answered exercises + user answers)
+**Request:**
+```json
+{ "exercise_id": "01", "answer": "Ich sehe den Mann." }
+```
+
+**What it does:**
+- Fetches all session items in one DynamoDB query
+- Evaluates the answer with Claude (returns `{"is_correct": true|false}`)
+- If `feedback_mode=each` and the answer is wrong, generates a one-sentence correction
+- Saves `user_answer` and `is_correct` to the exercise item
+- Returns `next_exercise` (the next unanswered exercise) or `null` when the session is complete
+- On session complete: marks `status=complete`, returns `mistakes` list, and (if `feedback_mode=end`) generates a summary feedback paragraph
+
+**Response:**
+```json
+{
+  "is_correct": true,
+  "feedback": "...",         // present when feedback is triggered
+  "next_exercise": { "id": "02", "question": "..." }  // null when session complete
+}
+```
+
+When `next_exercise` is `null`, also returns:
+```json
+{ "mistakes": [ { "exercise_id": "01", "question": "...", "expected_answer": "...", "user_answer": "..." } ] }
+```
+
+**Inputs validated:** `answer` (required, ≤300 chars). Ownership check: rejects with 403 if the JWT `sub` doesn't match the session's `user_id`.
 
 ---
 
-### `POST /session/{id}/retry`
-Generates a targeted retry set based on mistakes.
+### `POST /session/{id}/retry` → `retry_session.py`
 
-- Receives: `{ mistakes: [...] }` (exercises + user's wrong answers)
-- Calls Claude asking for a new exercise set specifically designed to fix those mistakes
-- Creates a child session in DynamoDB (linked to parent via `parent_session_id`)
-- Returns: `session_id` + first exercise of retry set
+Generates a targeted retry set from the user's mistakes.
 
----
+**Request:**
+```json
+{ "mistakes": [ { "question": "...", "expected_answer": "...", "user_answer": "..." } ] }
+```
 
-## DynamoDB Schema
-
-One table, two item types (composite key: `session_id` PK + `question_id` SK):
-
-| question_id | Item type | Key fields |
-|---|---|---|
-| `SESSION` | Session metadata | `topic`, `category`, `language`, `level`, `feedback_mode`, `lang`, `user_id`, `status`, `ttl`, `parent_session_id` |
-| `01`, `02`, ... | Exercise | `question`, `expected_answer`, `user_answer`, `is_correct`, `feedback` |
-
----
-
-## API Gateway Routes
-
-| Method | Route | Lambda |
-|---|---|---|
-| POST | `/session` | `createSessionLambda` |
-| POST | `/session/{id}/answer` | `submitAnswerLambda` |
-| POST | `/session/{id}/retry` | `retrySessionLambda` |
-
----
-
-## Frontend Flow
-
-1. User selects level (A1–C2) and feedback mode ("after each answer" / "at the end") from UI pill selectors
-2. User types free-text prompt → `POST /session` → display first exercise
-3. User submits answer → `POST /session/{id}/answer` → display feedback (if triggered) + next exercise
-4. Session complete → show mistakes summary + feedback, "Retry mistakes?" prompt shown
-5. User accepts retry → `POST /session/{id}/retry` → new exercise set begins
+**What it does:**
+- Sends the mistakes list to Claude, which generates a new exercise set addressing those specific gaps
+- Creates a new SESSION item in DynamoDB with `parent_session_id` pointing to the original session
+- Inherits `level`, `feedback_mode`, `lang`, `user_id` from the parent session
+- Returns a new `session_id` + first exercise
 
 ---
 
 ## What this deliberately avoids
-- No `getNextExerciseLambda` — next exercise is returned inline with the answer response
-- No `evaluateAnswersLambda` — evaluation is part of answer submission
-- No separate "parse user prompt" Lambda — Claude handles parsing as part of exercise generation
-- No Lambda-to-Lambda invocation — each request is fully self-contained
+
+- **No `getNextExerciseLambda`** — the next exercise is returned inline with the answer response
+- **No `evaluateAnswersLambda`** — evaluation is part of `submit_answer`
+- **No separate prompt-parsing Lambda** — Claude handles topic/category/language extraction as part of exercise generation
+- **No Lambda-to-Lambda invocation** — each request is fully self-contained
 
 ---
 
-## Sprint Plan
+## API Gateway
 
-### Sprint 1 — Foundation ✅
-1. ✅ Fix DynamoDB table name mismatch (Lambda code + IAM policy)
-2. ✅ Implement DynamoDB schema (session + exercise item types)
-3. ✅ Implement `createSessionLambda` (`POST /session`)
-4. ✅ Update API Gateway routes
+All routes protected by a Cognito JWT authorizer. `payload_format_version = "2.0"` on all Lambda integrations so JWT claims are available at `requestContext.authorizer.jwt.claims`.
 
-### Sprint 2 — Core Loop
-5. ✅ Implement `submitAnswerLambda` (`POST /session/{id}/answer`) with inline evaluation
-6. ✅ Update frontend to call `POST /session` and display first exercise
-7. Integration test: full practice cycle end-to-end
+| Method | Route | Lambda |
+|--------|-------|--------|
+| POST | `/session` | `create_session` |
+| POST | `/session/{id}/answer` | `submit_answer` |
+| POST | `/session/{id}/retry` | `retry_session` |
 
-### Sprint 3 — Retry & Hardening
-8. ✅ Implement `retrySessionLambda` (`POST /session/{id}/retry`)
-9. ✅ Secure API Gateway — Cognito JWT authorizer on all routes (issue #99); `payload_format_version = "2.0"` on integrations
-10. ✅ Add prod environment — Terraform config + manual deploy workflow; base workspace owns shared IAM role and ACM certs
-11. CloudWatch structured logging across all Lambdas — issue #37
-12. ✅ Harden Lambdas against prompt injection (XML tag wrapping, length caps, schema validation) — issue #67
-13. ✅ Add level selector + feedback mode UI controls — issue #65
-14. ✅ Replace `feedback_every_n` with `level` + `feedback_mode` params — issue #66
-15. ✅ Add Cognito auth UI (sign-up, sign-in, confirm, forgot password, silent token refresh) — issue #95
-16. ✅ Harden CloudFront (security headers, S3 public access block, config.js no-cache) — issue #106
-17. ✅ Refactor deploy workflows into shared reusable workflow with fail-fast on empty TFC outputs
+---
+
+## Frontend flow
+
+1. User signs in via Cognito auth UI
+2. User selects level (A1–C2) and feedback mode from pill selectors, then types a free-text prompt → `POST /session` → first exercise displayed
+3. User submits answer → `POST /session/{id}/answer` → feedback (if triggered) + next exercise
+4. Session complete → mistakes summary shown, "Retry mistakes?" prompt
+5. User accepts retry → `POST /session/{id}/retry` → new exercise set begins
+
+---
+
+## DynamoDB
+
+See [dynamodb_schema.md](dynamodb_schema.md) for the full schema.
+
+One table, two item types. Composite key: `session_id` (PK) + `question_id` (SK). The `question_id` value `"SESSION"` identifies the metadata item; `"01"`, `"02"`, ... identify exercises. A `by-user` GSI on `user_id` supports listing sessions per user.

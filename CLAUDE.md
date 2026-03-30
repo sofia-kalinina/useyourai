@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A serverless AI-powered language learning app focused on grammar. Users request exercises via a chat interface; Claude Sonnet 4.5 (AWS Bedrock) generates exercises and feedback.
 
-- **Current iteration (v1):** authenticated users (Cognito), full exercise flow with retry — see @docs/basic_scenario.md
+- **Current iteration (v1):** authenticated users (Cognito), full exercise flow with retry — see @docs/implementation_plan.md
 - **Long-term vision:** user accounts, study history, per-topic statistics and success rates
-- **Project planning:** GitHub Issues + @docs/implementation_plan.md — repo: https://github.com/sofia-kalinina/useyourai
+- **Project planning:** GitHub Issues — repo: https://github.com/sofia-kalinina/useyourai
 
 **Background:** I'm a DevOps Engineer building this end-to-end, including frontend — deliberate practice to strengthen full-stack and AWS skills, not just a side project. I chose this stack to learn it deeply.
 
