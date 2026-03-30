@@ -1,4 +1,8 @@
-// Copy this file to config.js and update with your API URL
+// This file is generated at deploy time by CI/CD from Terraform Cloud outputs.
+// It is never committed to git. For local development, copy this file to config.js
+// and fill in your own values from the API Gateway and Cognito Terraform outputs.
 window.ENV = {
-  API_URL: 'YOUR_API_GATEWAY_URL_HERE'
+  API_URL: 'https://<api-id>.execute-api.<region>.amazonaws.com/<stage>',
+  COGNITO_USER_POOL_ID: '<region>_<pool-id>',
+  COGNITO_CLIENT_ID: '<client-id>'
 };
