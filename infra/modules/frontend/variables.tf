@@ -39,3 +39,9 @@ variable "project_name" {
   description = "The name of the project"
   type        = string
 }
+
+variable "web_acl_id" {
+  description = "ARN of the WAF Web ACL to attach to the CloudFront distribution. Null disables WAF."
+  type        = string
+  default     = null
+}
