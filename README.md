@@ -69,6 +69,8 @@ A few things baked in that are worth calling out:
 - **Prompt injection hardening** — all user-controlled strings are wrapped in XML tags (`<user_prompt>`, `<user_answer>`) before reaching Bedrock, and every system prompt explicitly instructs Claude to treat tagged content as data only. Input lengths are capped before the Bedrock call.
 - **JWT-protected API** — all routes require a valid Cognito access token. The Lambda reads `user_id` from JWT claims, never from the request body.
 - **CloudFront security headers** — HSTS (2-year max-age), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, strict CSP.
+- **WAF on prod CloudFront** — rate-based rule (block IPs exceeding 500 req/5min) and AWS Managed Core Rule Set (OWASP top 10 coverage).
+- **API Gateway throttling** — 10 req/s sustained, 50 burst — protects Lambda from traffic spikes on both dev and prod.
 
 ---
 
@@ -137,8 +139,7 @@ The CI/CD pipeline:
 3. Production deploys are manual (`workflow_dispatch` only).
 4. AWS authentication uses GitHub Actions OIDC — no long-lived credentials stored anywhere.
 
-> [!NOTE]
-> To deploy your own instance, you need a Terraform Cloud account, an AWS account, and a domain in Route53. Fork the repo, update the org/workspace names in `infra/environments/*/backend.tf`, set the required GitHub Actions secrets (`TFC_TOKEN`, `AWS_ROLE_ARN`) and variables (`TFC_WORKSPACE_DEV`, `TFC_WORKSPACE_PROD`), and run a plan from Terraform Cloud.
+To deploy your own instance, see [docs/self-hosting.md](docs/self-hosting.md).
 
 ---
 
@@ -150,8 +151,9 @@ The CI/CD pipeline:
 - [x] Cognito auth — sign-up, sign-in, silent token refresh
 - [x] Production environment (useyourai.eu)
 - [x] CloudFront hardening (security headers, HSTS, S3 public access block)
+- [ ] WAF on prod CloudFront (rate limiting + OWASP Core Rule Set)
+- [ ] API Gateway rate limiting (dev + prod)
 - [ ] CloudWatch structured logging across all Lambdas
-- [ ] API Gateway rate limiting
 - [ ] User study history and per-topic statistics
 
 ---
