@@ -28,6 +28,7 @@ module "frontend" {
   project_name              = var.project_name
   managed_by_github_actions = true
   github_actions_role_name  = data.tfe_outputs.base_outputs.values.github_actions_role_name
+  web_acl_id                = aws_wafv2_web_acl.frontend.arn
 }
 
 module "cognito" {

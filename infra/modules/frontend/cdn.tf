@@ -44,6 +44,7 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
   comment             = "CDN for ${var.project_name} ${var.environment}"
   aliases             = var.certificate_arn != null ? [var.domain_name] : []
   default_root_object = "index.html"
+  web_acl_id          = var.web_acl_id
   tags = merge(var.common_tags, {
     Name = "${var.project_name}-${var.environment}-cdn"
   })
