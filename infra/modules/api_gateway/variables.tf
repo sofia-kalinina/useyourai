@@ -42,3 +42,15 @@ variable "project_name" {
   description = "The name of the project"
   type        = string
 }
+
+variable "throttling_rate_limit" {
+  description = "Max sustained requests per second for the API stage"
+  type        = number
+  default     = 10
+}
+
+variable "throttling_burst_limit" {
+  description = "Max concurrent requests allowed in a spike for the API stage"
+  type        = number
+  default     = 50
+}
