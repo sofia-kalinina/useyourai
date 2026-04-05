@@ -21,6 +21,11 @@ resource "aws_apigatewayv2_stage" "useyourai_api_stage" {
   tags = merge(var.common_tags, {
     Name = "${var.project_name}-${var.environment}-api-stage"
   })
+
+  default_route_settings {
+    throttling_rate_limit  = var.throttling_rate_limit
+    throttling_burst_limit = var.throttling_burst_limit
+  }
 }
 
 resource "aws_apigatewayv2_authorizer" "cognito" {
