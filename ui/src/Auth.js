@@ -132,6 +132,7 @@ const Auth = ({ onAuthenticated }) => {
             Already have an account?{' '}
             <button onClick={() => { clearError(); setView('signin'); }}>Sign in</button>
           </div>
+          <PrivacyFooter />
         </div>
       </div>
     );
@@ -280,5 +281,14 @@ const Auth = ({ onAuthenticated }) => {
     </div>
   );
 };
+
+const PrivacyFooter = () => (
+  <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.78rem', color: '#9ca3af' }}>
+    By creating an account you agree to our{' '}
+    <a href="/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: '#61DAFB', textDecoration: 'none' }}>
+      Privacy Policy
+    </a>
+  </p>
+);
 
 export default Auth;
