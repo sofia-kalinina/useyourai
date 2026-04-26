@@ -59,3 +59,21 @@
   border-color: #61DAFB;
   color: #61DAFB;
 }
+
+.App-footer {
+  flex-shrink: 0;
+  text-align: center;
+  padding: 8px;
+  font-size: 0.72rem;
+  color: rgba(0,0,0,0.35);
+}
+
+.App-footer a {
+  color: rgba(0,0,0,0.35);
+  text-decoration: none;
+}
+
+.App-footer a:hover {
+  color: #0369a1;
+  text-decoration: underline;
+}

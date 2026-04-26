@@ -1,0 +1,105 @@
+.privacy-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(160deg, #eef6fb 0%, #e8f4fa 50%, #f0f2f5 100%);
+}
+
+.privacy-main {
+  max-width: 760px;
+  width: 100%;
+  margin: 48px auto 80px;
+  padding: 0 24px;
+  flex: 1;
+}
+
+.privacy-main h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #282c34;
+  margin-bottom: 6px;
+}
+
+.privacy-meta {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 40px;
+}
+
+.privacy-main h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #282c34;
+  margin-top: 40px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #61DAFB;
+}
+
+.privacy-main p {
+  margin-top: 10px;
+  color: #374151;
+}
+
+.privacy-main ul {
+  margin-top: 10px;
+  padding-left: 20px;
+  color: #374151;
+}
+
+.privacy-main li {
+  margin-top: 6px;
+}
+
+.privacy-main table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.privacy-main th {
+  text-align: left;
+  padding: 10px 14px;
+  background: #282c34;
+  color: #61DAFB;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.privacy-main th:first-child { border-radius: 6px 0 0 0; }
+.privacy-main th:last-child  { border-radius: 0 6px 0 0; }
+
+.privacy-main td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #dde6ee;
+  color: #374151;
+  vertical-align: top;
+}
+
+.privacy-main tr:last-child td { border-bottom: none; }
+.privacy-main tr:nth-child(even) td { background: rgba(97, 218, 251, 0.04); }
+
+.privacy-main a { color: #0369a1; }
+.privacy-main a:hover { text-decoration: underline; }
+
+.privacy-note {
+  background: rgba(97, 218, 251, 0.1);
+  border-left: 3px solid #61DAFB;
+  padding: 14px 18px;
+  border-radius: 0 6px 6px 0;
+  margin-top: 16px;
+  font-size: 0.92rem;
+  color: #374151;
+}
+
+.privacy-page-footer {
+  text-align: center;
+  font-size: 0.82rem;
+  color: #9ca3af;
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid #dde6ee;
+}
