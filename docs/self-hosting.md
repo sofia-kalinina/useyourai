@@ -184,8 +184,15 @@ Repeat steps 2–3 for prod using the `<your-project>-prod` workspace. To releas
 
 Once deployed:
 
-1. Open your domain in a browser — you should see the sign-up/sign-in screen
-2. Create an account and confirm via the Cognito verification email
+1. Open your domain in a browser — you should see the sign-in screen
+2. Create a user. In prod, use the sign-up form and confirm via the Cognito verification email. In dev, users are created by an admin, so sign-up is not available and the user needs a permanent password (the UI has no temporary password flow):
+   ```bash
+   aws cognito-idp admin-create-user --user-pool-id <pool-id> --username <email> \
+     --user-attributes Name=email,Value=<email> Name=email_verified,Value=true \
+     --message-action SUPPRESS
+   aws cognito-idp admin-set-user-password --user-pool-id <pool-id> --username <email> \
+     --password <password> --permanent
+   ```
 3. Sign in and start a session — e.g. _"5 exercises on German accusative case at B1 level"_
 4. Answer exercises and verify feedback is returned
 
