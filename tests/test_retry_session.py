@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import boto3
 import pytest
+from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
 os.environ["TABLE_NAME"] = "test-table"
@@ -126,6 +127,16 @@ def test_retry_session_persists_exercises(seeded_table):
     exercise = seeded_table.get_item(Key={"session_id": session_id, "question_id": "01"})["Item"]
     assert exercise["question"] == "Fix the sentence: Ich sehe der Hund."
     assert exercise["expected_answer"] == "Ich sehe den Hund."
+
+
+def test_every_session_item_has_same_ttl(seeded_table):
+    with patch.object(retry_session.bedrock, "invoke_model", return_value=bedrock_response_for(FAKE_EXERCISE_DATA)):
+        response = retry_session.lambda_handler(make_event(), {})
+    session_id = json.loads(response["body"])["session_id"]
+    items = seeded_table.query(KeyConditionExpression=Key("session_id").eq(session_id))["Items"]
+    assert {i["question_id"] for i in items} == {"SESSION", "01", "02"}
+    session_ttl = next(i["ttl"] for i in items if i["question_id"] == "SESSION")
+    assert all(i.get("ttl") == session_ttl for i in items)
 
 
 def test_inherits_lang_from_parent_session(seeded_table):
