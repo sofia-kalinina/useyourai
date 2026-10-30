@@ -10,12 +10,12 @@ variable "common_tags" {
 
 variable "account_id" {
   description = "AWS account ID"
-  type        = string  
+  type        = string
 }
 
 variable "environment" {
   description = "Environment name"
-  type        = string  
+  type        = string
 }
 
 variable "region" {

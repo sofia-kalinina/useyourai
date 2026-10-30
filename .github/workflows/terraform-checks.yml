@@ -1,0 +1,44 @@
+name: Terraform Checks
+
+on:
+  pull_request:
+    paths:
+      - 'infra/**'
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4.0.1
+        with:
+          terraform_version: 1.17.1
+          terraform_wrapper: false
+
+      - name: Set up TFLint
+        uses: terraform-linters/setup-tflint@v6.3.2
+        with:
+          tflint_version: v0.65.0
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive infra
+
+      - name: Run TFLint
+        run: tflint --chdir=infra --recursive --config "$GITHUB_WORKSPACE/infra/.tflint.hcl"
+
+      - name: Validate configuration
+        env:
+          TF_PLUGIN_CACHE_DIR: ${{ runner.temp }}/terraform-plugins
+        run: |
+          mkdir -p "$TF_PLUGIN_CACHE_DIR"
+          for dir in infra/base infra/environments/* infra/modules/*; do
+            echo "Validating $dir"
+            terraform -chdir="$dir" init -backend=false -input=false
+            terraform -chdir="$dir" validate
+          done

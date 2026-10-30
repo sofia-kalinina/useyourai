@@ -50,12 +50,12 @@ resource "aws_apigatewayv2_integration" "useyourai_lambdas_integration" {
 }
 
 resource "aws_apigatewayv2_route" "useyourai_lambdas_route" {
-  for_each             = { for lambda in var.lambdas : lambda.name => lambda }
-  api_id               = aws_apigatewayv2_api.useyourai_api.id
-  route_key            = each.value.route_key
-  target               = "integrations/${aws_apigatewayv2_integration.useyourai_lambdas_integration[each.value.name].id}"
-  authorization_type   = "JWT"
-  authorizer_id        = aws_apigatewayv2_authorizer.cognito.id
+  for_each           = { for lambda in var.lambdas : lambda.name => lambda }
+  api_id             = aws_apigatewayv2_api.useyourai_api.id
+  route_key          = each.value.route_key
+  target             = "integrations/${aws_apigatewayv2_integration.useyourai_lambdas_integration[each.value.name].id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
 # Permission for API Gateway to invoke Lambdas
