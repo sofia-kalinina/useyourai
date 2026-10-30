@@ -67,3 +67,4 @@ Incremented with a conditional update before each Bedrock call. The API returns 
 | `user_answer` | S | User's submitted answer (set on answer submission) |
 | `is_correct` | BOOL | Whether the answer was marked correct (set on answer submission) |
 | `feedback` | S | Textual feedback from Claude (set when feedback is triggered) |
+| `ttl` | N | Unix timestamp for auto-deletion, same value as the session metadata item |
