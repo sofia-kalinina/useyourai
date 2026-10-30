@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import boto3
 import pytest
+from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
 os.environ["TABLE_NAME"] = "test-table"
@@ -101,6 +102,16 @@ def test_valid_request_persists_exercises(dynamodb_table):
     exercise = dynamodb_table.get_item(Key={"session_id": session_id, "question_id": "01"})["Item"]
     assert exercise["question"] == "Translate: I see the man."
     assert exercise["expected_answer"] == "Ich sehe den Mann."
+
+
+def test_every_session_item_has_same_ttl(dynamodb_table):
+    with patch.object(create_session.bedrock, "invoke_model", return_value=bedrock_response_for(FAKE_EXERCISE_DATA)):
+        response = create_session.lambda_handler(make_event("10 German accusative exercises"), {})
+    session_id = json.loads(response["body"])["session_id"]
+    items = dynamodb_table.query(KeyConditionExpression=Key("session_id").eq(session_id))["Items"]
+    assert {i["question_id"] for i in items} == {"SESSION", "01", "02"}
+    session_ttl = next(i["ttl"] for i in items if i["question_id"] == "SESSION")
+    assert all(i.get("ttl") == session_ttl for i in items)
 
 
 def test_missing_body_returns_400():
