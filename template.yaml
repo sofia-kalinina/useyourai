@@ -4,7 +4,7 @@ Description: useyourai Lambda functions
 
 Globals:
   Function:
-    Runtime: python3.11
+    Runtime: python3.14
     Timeout: 30
     Environment:
       Variables:
