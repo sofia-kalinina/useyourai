@@ -74,6 +74,9 @@ const Chat = ({ onAuthError }) => {
   const addMessage = (text, sender) =>
     setMessages((prev) => [...prev, { text, sender }]);
 
+  const errorText = (error) =>
+    error.response?.status === 429 ? tr.dailyLimit : tr.error;
+
   const handleRetry = async () => {
     setIsLoading(true);
     try {
@@ -90,7 +93,7 @@ const Chat = ({ onAuthError }) => {
       addMessage(exercise.question, 'system');
     } catch (error) {
       console.error('Error starting retry session:', error);
-      addMessage(tr.error, 'system');
+      addMessage(errorText(error), 'system');
     } finally {
       setIsLoading(false);
     }
@@ -114,7 +117,7 @@ const Chat = ({ onAuthError }) => {
       addMessage(exercise.question, 'system');
     } catch (error) {
       console.error('Error creating session:', error);
-      addMessage(tr.error, 'system');
+      addMessage(errorText(error), 'system');
     }
   };
 
@@ -154,7 +157,7 @@ const Chat = ({ onAuthError }) => {
       }
     } catch (error) {
       console.error('Error submitting answer:', error);
-      addMessage(tr.error, 'system');
+      addMessage(errorText(error), 'system');
     }
   };
 

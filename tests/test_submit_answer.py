@@ -357,3 +357,11 @@ def test_lang_uk_includes_language_instruction_in_feedback_prompt(seeded_table_u
     feedback_call_body = json.loads(captured_calls[1]["body"])
     feedback_prompt = feedback_call_body["messages"][0]["content"][0]["text"]
     assert "Ukrainian" in feedback_prompt
+
+
+def test_daily_limit_returns_429_without_calling_bedrock(seeded_table):
+    with patch.object(submit_answer, "_consume_daily_quota", return_value=False):
+        with patch.object(submit_answer, "bedrock") as mock_bedrock:
+            response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
+    assert response["statusCode"] == 429
+    mock_bedrock.invoke_model.assert_not_called()

@@ -41,10 +41,28 @@ MAX_PROMPT_LENGTH = 500
 VALID_LEVELS = {"A1", "A2", "B1", "B2", "C1", "C2"}
 VALID_FEEDBACK_MODES = {"each", "end"}
 VALID_LANGS = {"en", "uk"}
+MAX_SESSIONS_PER_DAY = 20
 
 LANG_INSTRUCTIONS = {
     "uk": "Write all exercise questions and instructions in Ukrainian.",
 }
+
+
+def _consume_daily_quota(user_id):
+    # Atomic, so concurrent requests cannot overrun the limit. Runs before Bedrock is called.
+    try:
+        table.update_item(
+            Key={"session_id": f"QUOTA#{user_id}", "question_id": time.strftime("%Y-%m-%d", time.gmtime())},
+            UpdateExpression="ADD #count :one SET #ttl = :ttl",
+            ConditionExpression="attribute_not_exists(#count) OR #count < :limit",
+            ExpressionAttributeNames={"#count": "sessions", "#ttl": "ttl"},
+            ExpressionAttributeValues={":one": 1, ":ttl": int(time.time()) + 3 * 24 * 60 * 60, ":limit": MAX_SESSIONS_PER_DAY}
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            return False
+        raise
+    return True
 
 
 def lambda_handler(event, context):
@@ -77,7 +95,8 @@ def lambda_handler(event, context):
     if lang not in VALID_LANGS:
         return {"statusCode": 400, "body": json.dumps({"error": f"'lang' must be one of: {', '.join(sorted(VALID_LANGS))}"})}
 
-
+    if not _consume_daily_quota(user_id):
+        return {"statusCode": 429, "body": json.dumps({"error": "Daily limit reached", "code": "daily_limit_reached"})}
 
     try:
         bedrock_response = bedrock.invoke_model(

@@ -19,6 +19,7 @@ const translations = {
     retryYes: 'Retry mistakes',
     retryNo: 'Start new session',
     error: 'Sorry, something went wrong. Please try again.',
+    dailyLimit: "You've reached today's practice limit. Come back tomorrow!",
   },
   uk: {
     welcomeMessages: [
@@ -40,6 +41,7 @@ const translations = {
     retryYes: 'Повторити помилки',
     retryNo: 'Нова сесія',
     error: 'Вибач, щось пішло не так. Спробуй ще раз.',
+    dailyLimit: 'Денний ліміт практики вичерпано. Повертайся завтра!',
   },
 };
 
