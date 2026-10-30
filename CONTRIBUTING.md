@@ -15,7 +15,7 @@ Before diving in, read [README.md](README.md) for the architecture overview and 
 ### Prerequisites
 
 - Node.js 18+
-- Python 3.11+
+- Python 3.14+
 - A deployed instance of the backend (or use the dev environment at `dev.useyourai.eu`)
 
 ### Frontend
