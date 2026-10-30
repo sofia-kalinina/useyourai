@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'infra/**'
+      - '.github/workflows/terraform-checks.yml'
 
 permissions:
   contents: read
