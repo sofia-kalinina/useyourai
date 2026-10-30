@@ -365,3 +365,16 @@ def test_daily_limit_returns_429_without_calling_bedrock(seeded_table):
             response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
     assert response["statusCode"] == 429
     mock_bedrock.invoke_model.assert_not_called()
+
+
+def test_expired_session_returns_404_without_calling_bedrock(seeded_table):
+    seeded_table.update_item(
+        Key={"session_id": SESSION_ID, "question_id": "SESSION"},
+        UpdateExpression="SET #t = :past",
+        ExpressionAttributeNames={"#t": "ttl"},
+        ExpressionAttributeValues={":past": 1},
+    )
+    with patch.object(submit_answer, "bedrock") as mock_bedrock:
+        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
+    assert response["statusCode"] == 404
+    mock_bedrock.invoke_model.assert_not_called()

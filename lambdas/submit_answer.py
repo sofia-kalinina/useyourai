@@ -121,6 +121,10 @@ def lambda_handler(event, context):
     if session_item.get('user_id') and caller_sub and session_item['user_id'] != caller_sub:
         return {"statusCode": 403, "body": json.dumps({"error": "Forbidden"})}
 
+    # DynamoDB deletes expired items late and one at a time, so a stale session may be incomplete
+    if session_item.get('ttl', time.time() + 1) <= time.time():
+        return {"statusCode": 404, "body": json.dumps({"error": "Session not found"})}
+
     if session_item.get('status') != 'active':
         return {"statusCode": 409, "body": json.dumps({"error": "Session is already complete"})}
 
