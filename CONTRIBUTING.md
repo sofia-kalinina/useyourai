@@ -16,7 +16,7 @@ Before diving in, read [README.md](README.md) for the architecture overview and 
 
 - Node.js 18+
 - Python 3.11+
-- A deployed instance of the backend (or use the dev environment at `dev.useyourai.eu`)
+- A deployed instance of the backend
 
 ### Frontend
 
