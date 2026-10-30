@@ -40,10 +40,28 @@ Return ONLY valid JSON in this exact format, with no other text before or after:
 
 MAX_MISTAKES = 20
 MAX_FIELD_LENGTH = 500
+MAX_SESSIONS_PER_DAY = 20
 
 LANG_INSTRUCTIONS = {
     "uk": "Write all exercise questions and instructions in Ukrainian.",
 }
+
+
+def _consume_daily_quota(user_id):
+    # Atomic, so concurrent requests cannot overrun the limit. Runs before Bedrock is called.
+    try:
+        table.update_item(
+            Key={"session_id": f"QUOTA#{user_id}", "question_id": time.strftime("%Y-%m-%d", time.gmtime())},
+            UpdateExpression="ADD #count :one SET #ttl = :ttl",
+            ConditionExpression="attribute_not_exists(#count) OR #count < :limit",
+            ExpressionAttributeNames={"#count": "sessions", "#ttl": "ttl"},
+            ExpressionAttributeValues={":one": 1, ":ttl": int(time.time()) + 3 * 24 * 60 * 60, ":limit": MAX_SESSIONS_PER_DAY}
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            return False
+        raise
+    return True
 
 
 def lambda_handler(event, context):
@@ -87,6 +105,9 @@ def lambda_handler(event, context):
     caller_sub = (event.get('requestContext') or {}).get('authorizer', {}).get('jwt', {}).get('claims', {}).get('sub')
     if session_item.get('user_id') and caller_sub and session_item['user_id'] != caller_sub:
         return {"statusCode": 403, "body": json.dumps({"error": "Forbidden"})}
+
+    if not _consume_daily_quota(session_item.get('user_id') or caller_sub):
+        return {"statusCode": 429, "body": json.dumps({"error": "Daily limit reached", "code": "daily_limit_reached"})}
 
     level = session_item.get('level', 'B1')
     feedback_mode = session_item.get('feedback_mode', 'end')

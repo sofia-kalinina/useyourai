@@ -160,3 +160,45 @@ def test_claude_invalid_json_returns_502(dynamodb_table):
     with patch.object(create_session.bedrock, "invoke_model", return_value={"body": mock_body}):
         response = create_session.lambda_handler(make_event("10 exercises"), {})
     assert response["statusCode"] == 502
+
+
+def test_daily_limit_returns_429_without_calling_bedrock(dynamodb_table):
+    with patch.object(create_session, "MAX_SESSIONS_PER_DAY", 1):
+        with patch.object(create_session, "bedrock") as mock_bedrock:
+            mock_bedrock.invoke_model.return_value = bedrock_response_for(FAKE_EXERCISE_DATA)
+            first = create_session.lambda_handler(make_event(prompt="German"), {})
+            second = create_session.lambda_handler(make_event(prompt="German"), {})
+    assert first["statusCode"] == 200
+    assert second["statusCode"] == 429
+    assert json.loads(second["body"])["code"] == "daily_limit_reached"
+    assert mock_bedrock.invoke_model.call_count == 1
+
+
+def test_daily_limit_is_per_user(dynamodb_table):
+    with patch.object(create_session, "MAX_SESSIONS_PER_DAY", 1):
+        with patch.object(create_session, "bedrock") as mock_bedrock:
+            mock_bedrock.invoke_model.return_value = bedrock_response_for(FAKE_EXERCISE_DATA)
+            create_session.lambda_handler(make_event(prompt="German", sub="user-a"), {})
+            other = create_session.lambda_handler(make_event(prompt="German", sub="user-b"), {})
+    assert other["statusCode"] == 200
+
+
+def test_daily_limit_resets_next_day(dynamodb_table):
+    with patch.object(create_session, "MAX_SESSIONS_PER_DAY", 1):
+        with patch.object(create_session, "bedrock") as mock_bedrock:
+            mock_bedrock.invoke_model.return_value = bedrock_response_for(FAKE_EXERCISE_DATA)
+            with patch.object(create_session.time, "strftime", return_value="2026-10-30"):
+                create_session.lambda_handler(make_event(prompt="German"), {})
+            with patch.object(create_session.time, "strftime", return_value="2026-10-31"):
+                next_day = create_session.lambda_handler(make_event(prompt="German"), {})
+    assert next_day["statusCode"] == 200
+
+
+def test_quota_item_has_ttl(dynamodb_table):
+    with patch.object(create_session, "bedrock") as mock_bedrock:
+        mock_bedrock.invoke_model.return_value = bedrock_response_for(FAKE_EXERCISE_DATA)
+        create_session.lambda_handler(make_event(prompt="German"), {})
+    items = dynamodb_table.scan()["Items"]
+    quota = next(i for i in items if i["session_id"] == "QUOTA#test-user-sub")
+    assert quota["sessions"] == 1
+    assert "ttl" in quota

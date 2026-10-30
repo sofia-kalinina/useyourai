@@ -229,3 +229,11 @@ def test_claude_malformed_exercise_schema_returns_502(seeded_table):
     with patch.object(retry_session.bedrock, "invoke_model", return_value=bedrock_response_for(bad_data)):
         response = retry_session.lambda_handler(make_event(), {})
     assert response["statusCode"] == 502
+
+
+def test_daily_limit_returns_429_without_calling_bedrock(seeded_table):
+    with patch.object(retry_session, "_consume_daily_quota", return_value=False):
+        with patch.object(retry_session, "bedrock") as mock_bedrock:
+            response = retry_session.lambda_handler(make_event(), {})
+    assert response["statusCode"] == 429
+    mock_bedrock.invoke_model.assert_not_called()

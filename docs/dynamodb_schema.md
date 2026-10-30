@@ -22,7 +22,7 @@ Projection: ALL. Only SESSION metadata items have `user_id` set — exercise ite
 
 ## Item types
 
-One table, two item types — distinguished by the `question_id` value.
+One table, three item types — distinguished by the key values.
 
 ### Session metadata item
 
@@ -41,6 +41,18 @@ One table, two item types — distinguished by the `question_id` value.
 | `status` | S | Session state: `active` \| `complete` |
 | `parent_session_id` | S | Set on retry sessions; references the original session (optional) |
 | `ttl` | N | Unix timestamp for auto-deletion |
+
+### Quota item
+
+`session_id = "QUOTA#<user_id>"`, `question_id = "<YYYY-MM-DD>"` (UTC)
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `sessions` | N | Sessions created today, including retries (limit 20) |
+| `answers` | N | Answers submitted today (limit 200) |
+| `ttl` | N | Unix timestamp for auto-deletion, 3 days after the last update |
+
+Incremented with a conditional update before each Bedrock call. The API returns `429` once a limit is reached.
 
 ### Exercise item
 

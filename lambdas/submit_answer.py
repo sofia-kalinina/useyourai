@@ -2,6 +2,7 @@ import boto3
 import json
 import os
 import re
+import time
 
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
@@ -25,6 +26,7 @@ The response must be exactly one of these two:
 Be lenient with minor spelling variations and accept multiple valid phrasings. Focus on whether the user demonstrates understanding of the concept."""
 
 MAX_ANSWER_LENGTH = 300
+MAX_ANSWERS_PER_DAY = 200
 
 PER_ANSWER_FEEDBACK_SYSTEM_PROMPT = """You are a language exercise evaluator. The user's answer was incorrect.
 State the correct answer in one short sentence. Do not explain grammar rules, do not encourage, do not praise. Be direct and factual.
@@ -63,6 +65,23 @@ def _strip_markdown_fences(text, label):
         stripped = stripped.split("\n", 1)[-1]
         stripped = stripped.rsplit("```", 1)[0].strip()
     return stripped
+
+
+def _consume_daily_quota(user_id):
+    # Atomic, so concurrent requests cannot overrun the limit. Runs before Bedrock is called.
+    try:
+        table.update_item(
+            Key={"session_id": f"QUOTA#{user_id}", "question_id": time.strftime("%Y-%m-%d", time.gmtime())},
+            UpdateExpression="ADD #count :one SET #ttl = :ttl",
+            ConditionExpression="attribute_not_exists(#count) OR #count < :limit",
+            ExpressionAttributeNames={"#count": "answers", "#ttl": "ttl"},
+            ExpressionAttributeValues={":one": 1, ":ttl": int(time.time()) + 3 * 24 * 60 * 60, ":limit": MAX_ANSWERS_PER_DAY}
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            return False
+        raise
+    return True
 
 
 def lambda_handler(event, context):
@@ -113,6 +132,9 @@ def lambda_handler(event, context):
     current_exercise = next((e for e in exercises if e['question_id'] == exercise_id), None)
     if not current_exercise:
         return {"statusCode": 404, "body": json.dumps({"error": "Exercise not found"})}
+
+    if not _consume_daily_quota(session_item.get('user_id') or caller_sub):
+        return {"statusCode": 429, "body": json.dumps({"error": "Daily limit reached", "code": "daily_limit_reached"})}
 
     feedback_mode = session_item.get('feedback_mode', 'end')
     lang = session_item.get('lang', 'en')
