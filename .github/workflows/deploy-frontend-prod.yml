@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   deploy:
+    if: startsWith(github.ref, 'refs/tags/')
     uses: ./.github/workflows/deploy-frontend-shared.yml
     with:
       tfc_workspace: ${{ vars.TFC_WORKSPACE_PROD }}
