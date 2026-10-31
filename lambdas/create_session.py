@@ -164,7 +164,8 @@ def lambda_handler(event, context):
                 "session_id": session_id,
                 "question_id": exercise["id"],
                 "question": exercise["question"],
-                "expected_answer": exercise["expected_answer"]
+                "expected_answer": exercise["expected_answer"],
+                "ttl": ttl
             })
 
     print(f"[create_session] Session {session_id} created with {len(exercises)} exercises (topic: {exercise_data.get('topic', 'unknown')})")
