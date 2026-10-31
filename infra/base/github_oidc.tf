@@ -30,6 +30,7 @@ resource "aws_iam_role" "github_actions" {
             "token.actions.githubusercontent.com:sub" = [
               "repo:sofia-kalinina/useyourai:ref:refs/heads/main",
               "repo:sofia-kalinina/useyourai:ref:refs/heads/main:workflow:*",
+              "repo:sofia-kalinina/useyourai:ref:refs/tags/*.*.*",
               "repo:sofia-kalinina/useyourai:pull_request"
             ]
           }

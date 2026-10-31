@@ -176,7 +176,7 @@ Push any change to `ui/**` on `main` (or trigger `Deploy Frontend (dev)` manuall
 
 ### 4. Prod workspace (optional)
 
-Repeat steps 2–3 for prod using the `<your-project>-prod` workspace. The prod frontend deploy is manual (`workflow_dispatch` only).
+Repeat steps 2–3 for prod using the `<your-project>-prod` workspace. To release, merge to `main`, test on dev, push a version tag such as `1.0.0` (no `v`), then apply the prod run in Terraform Cloud and run `Deploy Frontend (prod)` on the tag. Tag runs need the `base` workspace applied first, because it holds the GitHub Actions role's trust policy.
 
 ---
 

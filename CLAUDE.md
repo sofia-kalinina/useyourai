@@ -60,9 +60,10 @@ Terraform with two environments (`infra/environments/dev` and `prod`). A shared 
 
 ### CI/CD
 - `.github/workflows/deploy-frontend-dev.yml` — triggers on push to `main` (paths: `ui/**`); calls the shared workflow
-- `.github/workflows/deploy-frontend-prod.yml` — manual `workflow_dispatch` only; calls the shared workflow
+- `.github/workflows/deploy-frontend-prod.yml` — manual `workflow_dispatch`, runs only when a version tag such as `1.0.0` (no `v`) is selected; calls the shared workflow
 - `.github/workflows/deploy-frontend-shared.yml` — reusable `workflow_call` workflow; fetches TFC outputs, generates `config.js`, builds React app, syncs to S3, invalidates CloudFront cache; fails fast if TFC outputs are empty
 - Uses OIDC for AWS authentication (no long-lived credentials); workspace IDs stored as GitHub Actions repository variables `TFC_WORKSPACE_DEV` and `TFC_WORKSPACE_PROD`
+- Prod release: merge to `main`, test on dev, push a version tag, apply the prod run in Terraform Cloud, then run `Deploy Frontend (prod)` on the tag
 
 ## Commands
 

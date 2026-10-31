@@ -136,7 +136,7 @@ Infrastructure is managed by **Terraform Cloud** — do not run `terraform apply
 The CI/CD pipeline:
 1. On push to `main` (changes to `ui/**`): GitHub Actions builds the React app and syncs it to S3, then invalidates the CloudFront cache. API URL and Cognito config are fetched from Terraform Cloud state outputs and injected into `config.js` at build time — nothing is hardcoded.
 2. Lambda code is deployed by Terraform when source files change (via a new TFC plan run triggered by a PR).
-3. Production deploys are manual (`workflow_dispatch` only).
+3. Production releases follow merge to `main`, test on dev, push a version tag such as `1.0.0` (no `v`), apply the prod run in Terraform Cloud, then run `Deploy Frontend (prod)` on the tag.
 4. AWS authentication uses GitHub Actions OIDC — no long-lived credentials stored anywhere.
 
 To deploy your own instance, see [docs/self-hosting.md](docs/self-hosting.md).

@@ -87,6 +87,16 @@ Update config.js.example to include Cognito fields
 
 ---
 
+## Releasing to production
+
+1. Merge to `main`.
+2. Test on dev.
+3. Push a version tag such as `1.0.0` (no `v`). This starts the prod run in Terraform Cloud.
+4. Apply the prod run.
+5. Run `Deploy Frontend (prod)` in GitHub Actions, and select the tag.
+
+---
+
 ## What's out of scope
 
 - Lambda-to-Lambda calls — keep each Lambda self-contained
