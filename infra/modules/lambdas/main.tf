@@ -14,7 +14,7 @@ resource "aws_lambda_function" "create_session_lambda" {
 
   source_code_hash = data.archive_file.create_session_lambda.output_base64sha256
 
-  runtime = "python3.11"
+  runtime = "python3.14"
 
   environment {
     variables = {
@@ -39,7 +39,7 @@ resource "aws_lambda_function" "submit_answer_lambda" {
   handler          = "submit_answer.lambda_handler"
   timeout          = 30
   source_code_hash = data.archive_file.submit_answer_lambda.output_base64sha256
-  runtime          = "python3.11"
+  runtime          = "python3.14"
 
   environment {
     variables = {
@@ -62,7 +62,7 @@ resource "aws_lambda_function" "retry_session_lambda" {
   handler          = "retry_session.lambda_handler"
   timeout          = 30
   source_code_hash = data.archive_file.retry_session_lambda.output_base64sha256
-  runtime          = "python3.11"
+  runtime          = "python3.14"
 
   environment {
     variables = {

@@ -39,7 +39,7 @@ Browser (React 18)
 |----------|-------------------------------------------------------------|
 | Frontend | React 18, Axios, Tailwind CSS                               |
 | Auth     | AWS Cognito (sign-up/sign-in, JWT, silent token refresh)    |
-| Backend  | AWS Lambda (Python 3.11)                                    |
+| Backend  | AWS Lambda (Python 3.14)                                    |
 | AI       | AWS Bedrock — `eu.anthropic.claude-sonnet-4-5-20250929-v1:0` |
 | Database | DynamoDB (on-demand billing, TTL-based session cleanup)     |
 | API      | AWS API Gateway (HTTP, Cognito JWT authorizer)              |
@@ -78,7 +78,7 @@ A few things baked in that are worth calling out:
 
 ```
 .
-├── lambdas/                   # Python Lambda functions (Python 3.11)
+├── lambdas/                   # Python Lambda functions (Python 3.14)
 │   ├── create_session.py      # POST /session — generate exercises via Claude
 │   ├── submit_answer.py       # POST /session/{id}/answer — evaluate answers
 │   └── retry_session.py       # POST /session/{id}/retry — targeted retry set
@@ -104,7 +104,7 @@ A few things baked in that are worth calling out:
 ### Prerequisites
 
 - Node.js 18+
-- Python 3.11+
+- Python 3.14+
 
 ### Frontend
 

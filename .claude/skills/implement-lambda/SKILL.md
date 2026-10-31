@@ -277,7 +277,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.14'
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
       - name: Run Lambda tests
@@ -303,7 +303,7 @@ resource "aws_lambda_function" "<name>_lambda" {
   handler          = "<file>.lambda_handler"
   timeout          = 30
   source_code_hash = data.archive_file.<name>_lambda.output_base64sha256
-  runtime          = "python3.11"
+  runtime          = "python3.14"
 
   environment {
     variables = {

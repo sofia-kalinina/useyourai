@@ -16,7 +16,7 @@ A serverless AI-powered language learning app focused on grammar. Users request 
 
 - **IaC:** Terraform + Terraform Cloud (org: `sofiia-kalinina`)
 - **CI/CD:** GitHub Actions
-- **Backend:** AWS Lambda (Python 3.11)
+- **Backend:** AWS Lambda (Python 3.14)
 - **Database:** AWS DynamoDB
 - **API:** AWS API Gateway (HTTP)
 - **Frontend:** React 18
@@ -31,7 +31,7 @@ All tool versions must be pinned and up-to-date. Prefer tools with strong commun
 2. React app → API Gateway (HTTP) → Lambda → DynamoDB / Bedrock
 
 ### Backend (lambdas/)
-Lambda functions (Python 3.11, region `eu-central-1`):
+Lambda functions (Python 3.14, region `eu-central-1`):
 - `create_session.py` — receives `{ prompt, level, feedback_mode, lang }`, calls Claude via Bedrock to generate structured exercises, persists session metadata + all exercises to DynamoDB, returns `session_id` + first exercise
 - `submit_answer.py` — receives `{ exercise_id, answer }` via `POST /session/{id}/answer`, evaluates the answer with Claude, saves result to DynamoDB, returns `is_correct` + optional `feedback` + `next_exercise` (null when session complete, also returns `mistakes`). Feedback fires after each answer (`feedback_mode=each`) or only at session end (`feedback_mode=end`)
 - `retry_session.py` — receives `{ mistakes }` via `POST /session/{id}/retry`, generates a targeted exercise set via Claude addressing the user's wrong answers, creates a child session (linked via `parent_session_id`), inherits `level`/`feedback_mode`/`lang`/`user_id` from parent, returns `session_id` + first exercise
