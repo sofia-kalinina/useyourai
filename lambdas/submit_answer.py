@@ -118,7 +118,9 @@ def lambda_handler(event, context):
         return {"statusCode": 404, "body": json.dumps({"error": "Session not found"})}
 
     caller_sub = (event.get('requestContext') or {}).get('authorizer', {}).get('jwt', {}).get('claims', {}).get('sub')
-    if session_item.get('user_id') and caller_sub and session_item['user_id'] != caller_sub:
+    if not caller_sub:
+        return {"statusCode": 401, "body": json.dumps({"error": "Unauthorized"})}
+    if session_item.get('user_id') != caller_sub:
         return {"statusCode": 403, "body": json.dumps({"error": "Forbidden"})}
 
     # DynamoDB deletes expired items late and one at a time, so a stale session may be incomplete
@@ -154,7 +156,7 @@ def lambda_handler(event, context):
         eval_text = _invoke_claude(EVAL_SYSTEM_PROMPT, eval_prompt)
     except ClientError as e:
         print(f"[submit_answer] Bedrock evaluation failed: {e.response['Error']['Code']} — {e.response['Error']['Message']}")
-        return {"statusCode": 502, "body": json.dumps({"error": "Failed to call Claude", "detail": str(e)})}
+        return {"statusCode": 502, "body": json.dumps({"error": "Failed to call Claude"})}
 
     stripped_eval = _strip_markdown_fences(eval_text, "evaluation")
     try:

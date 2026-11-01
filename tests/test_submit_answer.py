@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import boto3
 import pytest
+from botocore.exceptions import ClientError
 from moto import mock_aws
 
 os.environ["TABLE_NAME"] = "test-table"
@@ -35,16 +36,19 @@ def bedrock_feedback_response(text="Good job!"):
     return {"body": mock_body}
 
 
-def make_event(session_id=SESSION_ID, exercise_id=None, answer=None):
+def make_event(session_id=SESSION_ID, exercise_id=None, answer=None, sub="test-user-uuid"):
     payload = {}
     if exercise_id is not None:
         payload["exercise_id"] = exercise_id
     if answer is not None:
         payload["answer"] = answer
-    return {
+    event = {
         "pathParameters": {"id": session_id},
         "body": json.dumps(payload),
     }
+    if sub is not None:
+        event["requestContext"] = {"authorizer": {"jwt": {"claims": {"sub": sub}}}}
+    return event
 
 
 @pytest.fixture
@@ -79,6 +83,7 @@ def seed_session(dynamodb_table, feedback_mode="end", lang="en"):
         "lang": lang,
         "status": "active",
         "ttl": 9999999999,
+        "user_id": "test-user-uuid",
     })
     for ex in FAKE_EXERCISES:
         dynamodb_table.put_item(Item={
@@ -290,10 +295,7 @@ def test_session_complete_returns_409(seeded_table):
 
 
 def test_exercise_not_found_returns_404(seeded_table):
-    event = {
-        "pathParameters": {"id": SESSION_ID},
-        "body": json.dumps({"exercise_id": "99", "answer": "x"}),
-    }
+    event = make_event(exercise_id="99", answer="x")
     with patch.object(submit_answer.bedrock, "invoke_model", return_value=bedrock_eval_response(True)):
         response = submit_answer.lambda_handler(event, {})
     assert response["statusCode"] == 404
@@ -378,3 +380,17 @@ def test_expired_session_returns_404_without_calling_bedrock(seeded_table):
         response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
     assert response["statusCode"] == 404
     mock_bedrock.invoke_model.assert_not_called()
+
+
+def test_missing_sub_returns_401(seeded_table):
+    response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich", sub=None), {})
+    assert response["statusCode"] == 401
+
+
+def test_bedrock_error_detail_not_returned(seeded_table):
+    error = ClientError({"Error": {"Code": "ThrottlingException", "Message": "internal detail"}}, "InvokeModel")
+    with patch.object(submit_answer, "bedrock") as mock_bedrock:
+        mock_bedrock.invoke_model.side_effect = error
+        response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich"), {})
+    assert response["statusCode"] == 502
+    assert "internal detail" not in response["body"]

@@ -46,13 +46,16 @@ def bedrock_response_for(data):
     return {"body": mock_body}
 
 
-def make_event(session_id=PARENT_SESSION_ID, mistakes=None):
+def make_event(session_id=PARENT_SESSION_ID, mistakes=None, sub="test-user-uuid"):
     if mistakes is None:
         mistakes = FAKE_MISTAKES
-    return {
+    event = {
         "pathParameters": {"id": session_id},
         "body": json.dumps({"mistakes": mistakes}),
     }
+    if sub is not None:
+        event["requestContext"] = {"authorizer": {"jwt": {"claims": {"sub": sub}}}}
+    return event
 
 
 @pytest.fixture
@@ -248,3 +251,8 @@ def test_daily_limit_returns_429_without_calling_bedrock(seeded_table):
             response = retry_session.lambda_handler(make_event(), {})
     assert response["statusCode"] == 429
     mock_bedrock.invoke_model.assert_not_called()
+
+
+def test_missing_sub_returns_401(seeded_table):
+    response = retry_session.lambda_handler(make_event(sub=None), {})
+    assert response["statusCode"] == 401

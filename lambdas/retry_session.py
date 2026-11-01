@@ -103,7 +103,9 @@ def lambda_handler(event, context):
         return {"statusCode": 404, "body": json.dumps({"error": "Parent session not found"})}
 
     caller_sub = (event.get('requestContext') or {}).get('authorizer', {}).get('jwt', {}).get('claims', {}).get('sub')
-    if session_item.get('user_id') and caller_sub and session_item['user_id'] != caller_sub:
+    if not caller_sub:
+        return {"statusCode": 401, "body": json.dumps({"error": "Unauthorized"})}
+    if session_item.get('user_id') != caller_sub:
         return {"statusCode": 403, "body": json.dumps({"error": "Forbidden"})}
 
     if not _consume_daily_quota(session_item.get('user_id') or caller_sub):
@@ -142,7 +144,7 @@ def lambda_handler(event, context):
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         print(f"[retry_session] Bedrock invocation failed: {error_code} — {e.response['Error']['Message']}")
-        return {"statusCode": 502, "body": json.dumps({"error": "Failed to call Claude", "detail": str(e)})}
+        return {"statusCode": 502, "body": json.dumps({"error": "Failed to call Claude"})}
 
     model_output = json.loads(bedrock_response["body"].read())
     raw_text = model_output["content"][0]["text"]

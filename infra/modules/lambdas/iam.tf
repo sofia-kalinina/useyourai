@@ -38,7 +38,6 @@ resource "aws_iam_role_policy" "dynamodb_rw_access_policy" {
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
           "dynamodb:GetItem",
-          "dynamodb:DeleteItem",
           "dynamodb:BatchWriteItem",
           "dynamodb:Query"
         ]
@@ -81,7 +80,6 @@ resource "aws_iam_role_policy" "bedrock_invoke_models_policy" {
       {
         Action = [
           "bedrock:InvokeModel",
-          "bedrock:InvokeModelWithResponseStream",
         ]
         Effect   = "Allow"
         Resource = "*"

@@ -114,7 +114,7 @@ def lambda_handler(event, context):
     except ClientError as e:
         error_code = e.response["Error"]["Code"]
         print(f"[create_session] Bedrock invocation failed: {error_code} — {e.response['Error']['Message']}")
-        return {"statusCode": 502, "body": json.dumps({"error": "Failed to call Claude", "detail": str(e)})}
+        return {"statusCode": 502, "body": json.dumps({"error": "Failed to call Claude"})}
 
     model_output = json.loads(bedrock_response["body"].read())
     raw_text = model_output["content"][0]["text"]
