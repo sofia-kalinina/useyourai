@@ -7,7 +7,7 @@ const Privacy = () => (
     <Header />
     <main className="privacy-main">
       <h1>Privacy Policy</h1>
-      <p className="privacy-meta">Effective date: 26 April 2026 &nbsp;·&nbsp; Last updated: 26 April 2026</p>
+      <p className="privacy-meta">Effective date: 26 April 2026 &nbsp;·&nbsp; Last updated: 1 November 2026</p>
 
       <h2>1. Who is responsible for your data</h2>
       <p>
@@ -47,6 +47,11 @@ const Privacy = () => (
             <td>Contract</td>
           </tr>
           <tr>
+            <td><strong>Daily usage counters</strong> (sessions and answers per day)</td>
+            <td>Apply fair-use limits to each account</td>
+            <td>Legitimate interest</td>
+          </tr>
+          <tr>
             <td><strong>User identifier</strong> (a random UUID assigned at sign-up)</td>
             <td>Link sessions to your account; enforce access control</td>
             <td>Legitimate interest</td>
@@ -61,7 +66,8 @@ const Privacy = () => (
 
       <h2>3. How long we keep your data</h2>
       <ul>
-        <li><strong>Exercise prompts, answers, and session data</strong> — automatically deleted after <strong>24 hours</strong> via a database TTL mechanism.</li>
+        <li><strong>Exercise prompts, answers, and session data</strong> — scheduled for automatic deletion after <strong>24 hours</strong> via a database TTL mechanism. Actual removal can take up to a few days after that.</li>
+        <li><strong>Daily usage counters</strong> — scheduled for automatic deletion <strong>3 days</strong> after your last use, in the same way.</li>
         <li><strong>Account data (email address)</strong> — retained until you request account deletion. Email <a href="mailto:privacy@useyourai.eu">privacy@useyourai.eu</a> to delete your account.</li>
       </ul>
 
@@ -87,12 +93,17 @@ const Privacy = () => (
           <tr>
             <td>Amazon DynamoDB</td>
             <td>eu-central-1 (Frankfurt)</td>
-            <td>Session storage — prompts, answers, metadata (deleted after 24 h)</td>
+            <td>Session storage — prompts, answers, metadata, usage counters</td>
           </tr>
           <tr>
             <td>AWS Lambda &amp; API Gateway</td>
             <td>eu-central-1 (Frankfurt)</td>
-            <td>Application logic — in-transit only, no persistent storage</td>
+            <td>Application logic — no user data stored by the functions themselves</td>
+          </tr>
+          <tr>
+            <td>Amazon CloudWatch Logs</td>
+            <td>eu-central-1 (Frankfurt)</td>
+            <td>Technical logs used to run and debug the service, such as session identifiers and errors</td>
           </tr>
           <tr>
             <td>Amazon S3 &amp; CloudFront</td>
@@ -100,8 +111,8 @@ const Privacy = () => (
             <td>Hosts the website front end (static files only; no user data)</td>
           </tr>
           <tr>
-            <td>Amazon Bedrock (Claude Sonnet)</td>
-            <td>eu-central-1 (Frankfurt)</td>
+            <td>Amazon Bedrock (Claude)</td>
+            <td>EU regions (cross-region inference from eu-central-1)</td>
             <td>AI model — receives your prompts and answers to generate exercises and feedback</td>
           </tr>
         </tbody>
