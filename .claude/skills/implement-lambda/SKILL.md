@@ -356,14 +356,14 @@ git add ui/
 git commit -m "Update <component> to call <endpoint>"
 ```
 
-## Step 13b — Update CLAUDE.md and docs
+## Step 13b — Update docs
 
-Update `CLAUDE.md` backend section to reflect the new Lambda (add it to the list, describe what it does). Update `docs/implementation_plan.md` to mark completed sprint items with ✅.
+Update `docs/implementation_plan.md` to reflect the new Lambda (add it to the list, describe what it does) and mark completed sprint items with ✅.
 
-Commit together on the same branch:
+Commit on the same branch:
 ```bash
-git add CLAUDE.md docs/implementation_plan.md
-git commit -m "Update CLAUDE.md and implementation plan to reflect <Lambda name>"
+git add docs/implementation_plan.md
+git commit -m "Update implementation plan to reflect <Lambda name>"
 ```
 
 ## Step 14 — Confirm with user before pushing
