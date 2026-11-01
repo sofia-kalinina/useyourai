@@ -20,7 +20,9 @@ const Auth = ({ onAuthenticated }) => {
       await signUp(email, password);
       setView('confirm');
     } catch (err) {
-      setError(err.message || 'Sign-up failed');
+      setError(err.code === 'NotAuthorizedException'
+        ? 'Sign-up is closed on this environment. Please ask an administrator for an account.'
+        : err.message || 'Sign-up failed');
     } finally {
       setIsLoading(false);
     }
