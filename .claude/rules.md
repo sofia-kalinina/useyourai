@@ -8,3 +8,5 @@
   1. Run `cd ui && npm run build` to confirm there are no compilation errors.
   2. Start the dev server with `cd ui && npm start` (run in background) so the user can open the browser and review visually.
   3. Ask the user to confirm the UI looks correct before proceeding to commit.
+
+- **Ponytail mode:** Every agent, including subagents, works in `/ponytail` skill mode until the owner says to stop. Invoke the skill at the start of a session, or follow `~/.claude/skills/ponytail/SKILL.md` if it can't be invoked.
