@@ -37,6 +37,8 @@ module "cognito" {
   environment  = var.environment
   project_name = var.project_name
   common_tags  = local.common_tags
+
+  allow_admin_create_user_only = true
 }
 
 module "dynamodb" {
