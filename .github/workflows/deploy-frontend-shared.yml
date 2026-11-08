@@ -15,7 +15,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       api_gateway_url: ${{ steps.fetch_outputs.outputs.api_gateway_url }}
       ui_bucket_name: ${{ steps.fetch_outputs.outputs.ui_bucket_name }}
@@ -118,7 +118,7 @@ jobs:
           retention-days: 1
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     needs: build
 
     steps:
