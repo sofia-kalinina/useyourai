@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import Message from './Message';
+import MistakeList from './MistakeList';
 import translations from './translations';
 import { getAccessToken } from './cognito';
 import './Chat.css';
@@ -144,6 +145,9 @@ const Chat = ({ onAuthError }) => {
         const mistakeCount = mistakes ? mistakes.length : 0;
         const correct = total - mistakeCount;
         addMessage(tr.sessionComplete(correct, total), 'system');
+        if (mistakeCount > 0) {
+          setMessages((prev) => [...prev, { sender: 'system', mistakes }]);
+        }
         if (feedback) addMessage(feedback, 'system');
         setSessionId(null);
         setCurrentExerciseId(null);
@@ -235,6 +239,9 @@ const Chat = ({ onAuthError }) => {
                 </div>
               </div>
             );
+          }
+          if (message.mistakes) {
+            return <MistakeList key={index} mistakes={message.mistakes} tr={tr} />;
           }
           return <Message key={index} message={message} />;
         })}
