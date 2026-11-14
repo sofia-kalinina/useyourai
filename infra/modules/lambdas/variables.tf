@@ -32,3 +32,9 @@ variable "dynamodb_table_arn" {
   description = "DynamoDB table ARN"
   type        = string
 }
+
+variable "global_daily_limit" {
+  description = "Bedrock-calling requests allowed per day across all users"
+  type        = number
+  default     = 60
+}

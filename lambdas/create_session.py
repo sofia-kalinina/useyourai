@@ -42,6 +42,7 @@ VALID_LEVELS = {"A1", "A2", "B1", "B2", "C1", "C2"}
 VALID_FEEDBACK_MODES = {"each", "end"}
 VALID_LANGS = {"en", "uk"}
 MAX_SESSIONS_PER_DAY = 20
+GLOBAL_DAILY_LIMIT = int(os.getenv('GLOBAL_DAILY_LIMIT', '60'))
 
 LANG_INSTRUCTIONS = {
     "uk": "Write all exercise questions and instructions in Ukrainian.",
@@ -57,6 +58,24 @@ def _consume_daily_quota(user_id):
             ConditionExpression="attribute_not_exists(#count) OR #count < :limit",
             ExpressionAttributeNames={"#count": "sessions", "#ttl": "ttl"},
             ExpressionAttributeValues={":one": 1, ":ttl": int(time.time()) + 3 * 24 * 60 * 60, ":limit": MAX_SESSIONS_PER_DAY}
+        )
+    except ClientError as e:
+        if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+            return False
+        raise
+    return True
+
+
+def _consume_global_quota():
+    # One counter shared by all users, so new accounts cannot raise the total Bedrock spend.
+    # Called after the per-user check, so a user already at their own limit cannot use it up.
+    try:
+        table.update_item(
+            Key={"session_id": "QUOTA#GLOBAL", "question_id": time.strftime("%Y-%m-%d", time.gmtime())},
+            UpdateExpression="ADD #count :one SET #ttl = :ttl",
+            ConditionExpression="attribute_not_exists(#count) OR #count < :limit",
+            ExpressionAttributeNames={"#count": "requests", "#ttl": "ttl"},
+            ExpressionAttributeValues={":one": 1, ":ttl": int(time.time()) + 3 * 24 * 60 * 60, ":limit": GLOBAL_DAILY_LIMIT}
         )
     except ClientError as e:
         if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
@@ -97,6 +116,8 @@ def lambda_handler(event, context):
 
     if not _consume_daily_quota(user_id):
         return {"statusCode": 429, "body": json.dumps({"error": "Daily limit reached", "code": "daily_limit_reached"})}
+    if not _consume_global_quota():
+        return {"statusCode": 429, "body": json.dumps({"error": "Daily limit reached", "code": "global_limit_reached"})}
 
     try:
         bedrock_response = bedrock.invoke_model(

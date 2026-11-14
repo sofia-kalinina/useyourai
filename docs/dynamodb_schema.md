@@ -54,6 +54,17 @@ One table, three item types — distinguished by the key values.
 
 Incremented with a conditional update before each Bedrock call. The API returns `429` once a limit is reached.
 
+### Global quota item
+
+`session_id = "QUOTA#GLOBAL"`, `question_id = "<YYYY-MM-DD>"` (UTC)
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `requests` | N | Bedrock-calling requests today across all users (limit `GLOBAL_DAILY_LIMIT`, default 60) |
+| `ttl` | N | Unix timestamp for auto-deletion, 3 days after the last update |
+
+Incremented after the per-user quota passes. The API returns `429` with code `global_limit_reached` once the limit is reached.
+
 ### Exercise item
 
 `question_id = "01"`, `"02"`, ... (zero-padded, assigned at session creation)
