@@ -256,3 +256,12 @@ def test_daily_limit_returns_429_without_calling_bedrock(seeded_table):
 def test_missing_sub_returns_401(seeded_table):
     response = retry_session.lambda_handler(make_event(sub=None), {})
     assert response["statusCode"] == 401
+
+
+def test_global_limit_returns_429_without_calling_bedrock(seeded_table):
+    with patch.object(retry_session, "_consume_global_quota", return_value=False):
+        with patch.object(retry_session, "bedrock") as mock_bedrock:
+            response = retry_session.lambda_handler(make_event(), {})
+    assert response["statusCode"] == 429
+    assert json.loads(response["body"])["code"] == "global_limit_reached"
+    mock_bedrock.invoke_model.assert_not_called()

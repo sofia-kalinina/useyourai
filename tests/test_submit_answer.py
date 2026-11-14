@@ -394,3 +394,12 @@ def test_bedrock_error_detail_not_returned(seeded_table):
         response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich"), {})
     assert response["statusCode"] == 502
     assert "internal detail" not in response["body"]
+
+
+def test_global_limit_returns_429_without_calling_bedrock(seeded_table):
+    with patch.object(submit_answer, "_consume_global_quota", return_value=False):
+        with patch.object(submit_answer, "bedrock") as mock_bedrock:
+            response = submit_answer.lambda_handler(make_event(exercise_id="01", answer="Ich sehe den Mann."), {})
+    assert response["statusCode"] == 429
+    assert json.loads(response["body"])["code"] == "global_limit_reached"
+    mock_bedrock.invoke_model.assert_not_called()
