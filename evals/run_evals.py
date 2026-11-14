@@ -2,7 +2,7 @@
 
 Calls Bedrock, so it costs money and is kept out of pytest and CI. Run it by hand:
 
-    AWS_PROFILE=<profile> python evals/run_evals.py --model eu.anthropic.claude-sonnet-4-5-20250929-v1:0
+    AWS_PROFILE=<profile> python evals/run_evals.py --model eu.anthropic.claude-sonnet-4-6
 
 Uses EVAL_SYSTEM_PROMPT and the same user message and parsing as lambdas/submit_answer.py,
 sent through the Converse API so any Bedrock model can be compared. Models that reject
