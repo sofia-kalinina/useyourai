@@ -213,3 +213,27 @@ def test_quota_item_has_ttl(dynamodb_table):
     quota = next(i for i in items if i["session_id"] == "QUOTA#test-user-sub")
     assert quota["sessions"] == 1
     assert "ttl" in quota
+
+
+def test_global_limit_is_shared_across_users(dynamodb_table):
+    with patch.object(create_session, "GLOBAL_DAILY_LIMIT", 1):
+        with patch.object(create_session, "bedrock") as mock_bedrock:
+            mock_bedrock.invoke_model.return_value = bedrock_response_for(FAKE_EXERCISE_DATA)
+            first = create_session.lambda_handler(make_event(prompt="German", sub="user-a"), {})
+            other = create_session.lambda_handler(make_event(prompt="German", sub="user-b"), {})
+    assert first["statusCode"] == 200
+    assert other["statusCode"] == 429
+    assert json.loads(other["body"])["code"] == "global_limit_reached"
+    assert mock_bedrock.invoke_model.call_count == 1
+
+
+def test_user_at_own_limit_does_not_use_global_quota(dynamodb_table):
+    with patch.object(create_session, "MAX_SESSIONS_PER_DAY", 1):
+        with patch.object(create_session, "bedrock") as mock_bedrock:
+            mock_bedrock.invoke_model.return_value = bedrock_response_for(FAKE_EXERCISE_DATA)
+            create_session.lambda_handler(make_event(prompt="German"), {})
+            create_session.lambda_handler(make_event(prompt="German"), {})
+    items = dynamodb_table.scan()["Items"]
+    global_quota = next(i for i in items if i["session_id"] == "QUOTA#GLOBAL")
+    assert global_quota["requests"] == 1
+    assert "ttl" in global_quota

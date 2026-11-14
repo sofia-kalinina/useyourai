@@ -18,7 +18,8 @@ resource "aws_lambda_function" "create_session_lambda" {
 
   environment {
     variables = {
-      TABLE_NAME = var.dynamodb_table_name
+      TABLE_NAME         = var.dynamodb_table_name
+      GLOBAL_DAILY_LIMIT = var.global_daily_limit
     }
   }
   tags = merge(var.common_tags, {
@@ -43,7 +44,8 @@ resource "aws_lambda_function" "submit_answer_lambda" {
 
   environment {
     variables = {
-      TABLE_NAME = var.dynamodb_table_name
+      TABLE_NAME         = var.dynamodb_table_name
+      GLOBAL_DAILY_LIMIT = var.global_daily_limit
     }
   }
   tags = merge(var.common_tags, { Name = "${var.project_name}-${var.environment}-lambda-submit-answer" })
@@ -66,7 +68,8 @@ resource "aws_lambda_function" "retry_session_lambda" {
 
   environment {
     variables = {
-      TABLE_NAME = var.dynamodb_table_name
+      TABLE_NAME         = var.dynamodb_table_name
+      GLOBAL_DAILY_LIMIT = var.global_daily_limit
     }
   }
   tags = merge(var.common_tags, { Name = "${var.project_name}-${var.environment}-lambda-retry-session" })
