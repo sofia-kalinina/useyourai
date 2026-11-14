@@ -209,6 +209,6 @@ At low personal usage (dev + prod):
 | API Gateway | ~$0 (free tier) |
 | CloudFront + S3 | ~$1–2 |
 | Cognito | ~$0 (free tier: 50,000 MAU) |
-| Bedrock (Claude Sonnet) | ~$0.003 per session |
-| WAF (prod only) | ~$7/month |
-| **Total** | **~$10–15/month** |
+| Route53 hosted zone | $0.50 |
+| Bedrock (Claude Sonnet) | ~$0.035 per 5-exercise session |
+| **Total** | **~$2–3/month plus Bedrock usage** |
