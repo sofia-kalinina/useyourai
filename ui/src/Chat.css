@@ -45,7 +45,9 @@
   gap: 10px;
 }
 
+/* Wider than the Ukrainian labels need, so the column keeps one width in both languages */
 .session-config {
+  min-width: 15rem;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -58,8 +60,10 @@
   gap: 6px;
 }
 
-.pill-group--nowrap {
-  flex-wrap: nowrap;
+/* Two equal columns, so the feedback and language buttons line up at the same width */
+.pill-group--pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   white-space: nowrap;
 }
 
@@ -80,7 +84,7 @@
 
 .pill-group--levels {
   display: grid;
-  grid-template-columns: repeat(4, max-content);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 /* C1 starts a second row under B1 */
