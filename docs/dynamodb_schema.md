@@ -33,7 +33,6 @@ One table, three item types — distinguished by the key values.
 | `session_id` | S | Unique session identifier (PK) |
 | `question_id` | S | Always `"SESSION"` for this item type |
 | `topic` | S | Exercise topic (e.g. "German accusative case") |
-| `category` | S | Grammar category (e.g. "grammar") |
 | `language` | S | Target language (e.g. "German") |
 | `user_id` | S | Cognito `sub` claim — identifies the session owner |
 | `level` | S | Learner level passed to Claude (A1–C2) |

@@ -76,7 +76,6 @@ def seed_session(dynamodb_table, feedback_mode="end", lang="en"):
         "session_id": SESSION_ID,
         "question_id": "SESSION",
         "topic": "German accusative case",
-        "category": "grammar",
         "language": "German",
         "level": "B1",
         "feedback_mode": feedback_mode,

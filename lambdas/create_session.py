@@ -27,7 +27,6 @@ If the user specifies a number of exercises, generate exactly that many. If they
 Return ONLY valid JSON in this exact format, with no other text before or after:
 {
   "topic": "<specific topic name>",
-  "category": "<e.g. grammar, vocabulary, pronunciation>",
   "language": "<target language>",
   "exercises": [
     {"id": "01", "question": "<exercise question>", "expected_answer": "<correct answer>"},
@@ -169,7 +168,6 @@ def lambda_handler(event, context):
             "session_id": session_id,
             "question_id": "SESSION",
             "topic": exercise_data.get("topic", ""),
-            "category": exercise_data.get("category", ""),
             "language": exercise_data.get("language", ""),
             "level": level,
             "feedback_mode": feedback_mode,

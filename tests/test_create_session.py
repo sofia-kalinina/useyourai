@@ -14,7 +14,6 @@ import create_session  # noqa: E402
 
 FAKE_EXERCISE_DATA = {
     "topic": "German accusative case",
-    "category": "grammar",
     "language": "German",
     "exercises": [
         {"id": "01", "question": "Translate: I see the man.", "expected_answer": "Ich sehe den Mann."},
