@@ -4,6 +4,9 @@ resource "aws_cognito_user_pool" "main" {
   username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
 
+  # Deleting the pool deletes every user account, so a stray destroy or replace must fail
+  deletion_protection = "ACTIVE"
+
   admin_create_user_config {
     allow_admin_create_user_only = var.allow_admin_create_user_only
   }
