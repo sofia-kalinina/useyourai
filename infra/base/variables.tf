@@ -20,6 +20,12 @@ variable "region" {
   type        = string
 }
 
+variable "privacy_forward_to_email" {
+  description = "Inbox that receives mail sent to privacy@<domain_name>"
+  type        = string
+  sensitive   = true
+}
+
 variable "create_certificate" {
   description = "Whether to create the ACM certificate"
   type        = bool

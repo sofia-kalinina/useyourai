@@ -112,6 +112,14 @@ Set the following Terraform variables in each workspace. Mark sensitive values a
 | `project_name` | `useyourai` (or your own name) |
 | `region` | `eu-central-1` |
 
+### base workspace only
+
+| Variable | Example value |
+|----------|---------------|
+| `privacy_forward_to_email` | `you@example.com` (receives mail sent to `privacy@<domain_name>`; mark **Sensitive**) |
+
+After the first apply, AWS emails a verification link to `privacy_forward_to_email`. Click it, or forwarding fails while the account is in the SES sandbox.
+
 ### dev workspace only
 
 | Variable | Example value |
@@ -162,7 +170,7 @@ Deploy in this order — each workspace reads outputs from the previous one.
 
 ### 1. Base workspace
 
-Provisions the Route53 hosted zone data source, ACM certificates, and the GitHub Actions IAM role.
+Provisions the Route53 hosted zone data source, ACM certificates, the GitHub Actions IAM role, and SES forwarding for `privacy@<domain_name>` (MX, verification and DKIM records, plus a forwarding Lambda).
 
 Trigger a plan run from the TFC UI for `<your-project>-base` and apply it.
 
