@@ -1,6 +1,13 @@
 data "archive_file" "create_session_lambda" {
-  type        = "zip"
-  source_file = "../../../lambdas/create_session.py"
+  type = "zip"
+  source {
+    content  = file("../../../lambdas/create_session.py")
+    filename = "create_session.py"
+  }
+  source {
+    content  = file("../../../lambdas/cefr_level_guide.md")
+    filename = "cefr_level_guide.md"
+  }
 
   output_path = "create_session.zip"
 }
@@ -52,8 +59,15 @@ resource "aws_lambda_function" "submit_answer_lambda" {
 }
 
 data "archive_file" "retry_session_lambda" {
-  type        = "zip"
-  source_file = "../../../lambdas/retry_session.py"
+  type = "zip"
+  source {
+    content  = file("../../../lambdas/retry_session.py")
+    filename = "retry_session.py"
+  }
+  source {
+    content  = file("../../../lambdas/cefr_level_guide.md")
+    filename = "cefr_level_guide.md"
+  }
   output_path = "retry_session.zip"
 }
 
