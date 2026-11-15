@@ -8,6 +8,14 @@ data "archive_file" "create_session_lambda" {
     content  = file("../../../lambdas/cefr_level_guide.md")
     filename = "cefr_level_guide.md"
   }
+  source {
+    content  = file("../../../lambdas/exercise_formats.md")
+    filename = "exercise_formats.md"
+  }
+  source {
+    content  = file("../../../lambdas/generation_docs.py")
+    filename = "generation_docs.py"
+  }
 
   output_path = "create_session.zip"
 }
@@ -67,6 +75,14 @@ data "archive_file" "retry_session_lambda" {
   source {
     content  = file("../../../lambdas/cefr_level_guide.md")
     filename = "cefr_level_guide.md"
+  }
+  source {
+    content  = file("../../../lambdas/exercise_formats.md")
+    filename = "exercise_formats.md"
+  }
+  source {
+    content  = file("../../../lambdas/generation_docs.py")
+    filename = "generation_docs.py"
   }
   output_path = "retry_session.zip"
 }

@@ -29,7 +29,6 @@ FAKE_MISTAKES = [
 
 FAKE_EXERCISE_DATA = {
     "topic": "German accusative case",
-    "category": "grammar",
     "language": "German",
     "exercises": [
         {"id": "01", "question": "Fix the sentence: Ich sehe der Hund.", "expected_answer": "Ich sehe den Hund."},
@@ -84,7 +83,6 @@ def seeded_table(dynamodb_table):
         "session_id": PARENT_SESSION_ID,
         "question_id": "SESSION",
         "topic": "German accusative case",
-        "category": "grammar",
         "language": "German",
         "level": "B1",
         "feedback_mode": "end",
@@ -109,11 +107,12 @@ def test_valid_request_returns_200(seeded_table):
     assert "expected_answer" not in body["exercise"]
 
 
-def test_system_prompt_includes_cefr_guide(seeded_table):
+def test_system_prompt_includes_guide_and_formats(seeded_table):
     with patch.object(retry_session.bedrock, "invoke_model", return_value=bedrock_response_for(FAKE_EXERCISE_DATA)) as mock_invoke:
         retry_session.lambda_handler(make_event(), {})
     system = json.loads(mock_invoke.call_args.kwargs["body"])["system"]
     assert "<guide>\n# CEFR level guide for exercise generation" in system
+    assert "<formats>\n# Exercise formats" in system
 
 def test_retry_session_persists_metadata_with_parent_link(seeded_table):
     with patch.object(retry_session.bedrock, "invoke_model", return_value=bedrock_response_for(FAKE_EXERCISE_DATA)):

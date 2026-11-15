@@ -18,7 +18,7 @@ Creates a session and generates all exercises in one step.
 ```
 
 **What it does:**
-- Sends the user's free-text prompt to Claude, which returns structured exercise JSON including `topic`, `category`, `language`, and an `exercises` array
+- Sends the user's free-text prompt to Claude, which returns structured exercise JSON including `topic`, `language`, and an `exercises` array
 - Validates the response schema before writing to DynamoDB
 - Persists a SESSION metadata item and one item per exercise
 - Returns `session_id` + first exercise (question only, no expected answer)
@@ -27,7 +27,6 @@ Creates a session and generates all exercises in one step.
 ```json
 {
   "topic": "German accusative case",
-  "category": "grammar",
   "language": "German",
   "exercises": [
     { "id": "01", "question": "...", "expected_answer": "..." }
@@ -95,7 +94,7 @@ Generates a targeted retry set from the user's mistakes.
 
 - **No `getNextExerciseLambda`** — the next exercise is returned inline with the answer response
 - **No `evaluateAnswersLambda`** — evaluation is part of `submit_answer`
-- **No separate prompt-parsing Lambda** — Claude handles topic/category/language extraction as part of exercise generation
+- **No separate prompt-parsing Lambda** — Claude handles topic/language extraction as part of exercise generation
 - **No Lambda-to-Lambda invocation** — each request is fully self-contained
 
 ---
