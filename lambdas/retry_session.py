@@ -1,4 +1,5 @@
 import boto3
+import html
 import json
 import os
 import time
@@ -144,7 +145,7 @@ def lambda_handler(event, context):
         for m in mistakes
     )
     user_message = (
-        f"<mistakes>\n{mistakes_text}\n</mistakes>\n"
+        f"<mistakes>\n{html.escape(mistakes_text, quote=False)}\n</mistakes>\n"
         f"Target level: {level}"
         + (f"\n{lang_instruction}" if lang_instruction else "")
     )
