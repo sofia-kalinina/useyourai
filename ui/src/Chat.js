@@ -206,7 +206,8 @@ const Chat = ({ onAuthError }) => {
                       </button>
                     ))}
                   </div>
-                  <div className="pill-group">
+                  <div className="config-divider">{tr.feedbackLabel}</div>
+                  <div className="pill-group pill-group--nowrap">
                     <button
                       className={`pill${feedbackMode === 'each' ? ' pill--active' : ''}`}
                       onClick={() => setFeedbackMode('each')}
@@ -222,6 +223,7 @@ const Chat = ({ onAuthError }) => {
                       {tr.atTheEnd}
                     </button>
                   </div>
+                  <div className="config-divider">{tr.languageLabel}</div>
                   <div className="pill-group">
                     <button
                       className={`pill${lang === 'en' ? ' pill--active' : ''}`}

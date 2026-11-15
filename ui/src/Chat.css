@@ -58,6 +58,26 @@
   gap: 6px;
 }
 
+.pill-group--nowrap {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.config-divider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.config-divider::before,
+.config-divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid #e5e7eb;
+}
+
 .pill-group--levels {
   display: grid;
   grid-template-columns: repeat(4, max-content);
