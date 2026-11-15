@@ -1,10 +1,10 @@
 const translations = {
   en: {
     welcomeMessages: [
-      'Welcome to useyourai! Ask for a set of exercises on any language topic — for example, "Give me 10 German accusative case exercises".',
-      'Ready to practise? Tell me what to drill — for example, "5 French subjunctive exercises, B2 level".',
+      'Welcome to useyourai! Ask for a set of exercises on any language topic, for example "Give me 10 German accusative case exercises".',
+      'Ready to practise? Tell me what to drill, for example "5 French subjunctive exercises, B2 level".',
       'Let\'s get to work. What would you like to practise today?',
-      'Hi! Pick a topic and I\'ll generate exercises for you — try: "10 Spanish past tense exercises".',
+      'Hi! Pick a topic and I\'ll generate exercises for you. Try: "10 Spanish past tense exercises".',
       'Good to see you. What language topic shall we tackle today?',
     ],
     feedbackLabel: 'feedback',
@@ -28,10 +28,10 @@ const translations = {
   },
   uk: {
     welcomeMessages: [
-      'Ласкаво просимо до useyourai! Попроси набір вправ на будь-яку мовну тему — наприклад, «Дай мені 10 вправ на знахідний відмінок у німецькій».',
-      'Готуєшся до практики? Скажи, що потрібно відпрацювати — наприклад, «5 вправ на французький субʼюнктив, рівень B2».',
+      'Ласкаво просимо до useyourai! Попроси набір вправ на будь-яку мовну тему, наприклад «Дай мені 10 вправ на знахідний відмінок у німецькій».',
+      'Готуєшся до практики? Скажи, що потрібно відпрацювати, наприклад «5 вправ на французький субʼюнктив, рівень B2».',
       'До роботи! Що хочеш попрактикувати сьогодні?',
-      'Привіт! Обери тему, і я складу для тебе вправи — спробуй: «10 вправ на іспанський минулий час».',
+      'Привіт! Обери тему, і я складу для тебе вправи. Спробуй: «10 вправ на іспанський минулий час».',
       'Раді тебе бачити! Яку мовну тему опрацюємо сьогодні?',
     ],
     feedbackLabel: 'відгук',
