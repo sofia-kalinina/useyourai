@@ -1,4 +1,5 @@
 import boto3
+import html
 import json
 import os
 import time
@@ -126,7 +127,7 @@ def lambda_handler(event, context):
             contentType="application/json",
             body=json.dumps({
                 "system": SYSTEM_PROMPT,
-                "messages": [{"role": "user", "content": [{"type": "text", "text": f"<user_prompt>{prompt}</user_prompt>\nTarget level: {level}{chr(10) + LANG_INSTRUCTIONS[lang] if lang in LANG_INSTRUCTIONS else ''}"}]}],
+                "messages": [{"role": "user", "content": [{"type": "text", "text": f"<user_prompt>{html.escape(prompt, quote=False)}</user_prompt>\nTarget level: {level}{chr(10) + LANG_INSTRUCTIONS[lang] if lang in LANG_INSTRUCTIONS else ''}"}]}],
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": 2048,
                 "temperature": 0.7
