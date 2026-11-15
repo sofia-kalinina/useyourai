@@ -202,6 +202,37 @@ Once deployed:
 
 ---
 
+## Troubleshooting
+
+### The site does not load and the domain does not resolve
+
+Check DNS first. Replace `<ns>` with one of your hosted zone's name servers:
+
+```bash
+dig +short dev.<your-domain>                # empty means no address
+dig dev.<your-domain> A @<ns> | grep status # NOERROR: the name exists; NXDOMAIN: no record at all
+```
+
+An empty answer with `NOERROR` usually means the `A` alias record exists but its CloudFront distribution is disabled. A disabled distribution stops answering DNS.
+
+**Cause: the request flood kill switch.** Each environment has a CloudWatch alarm on CloudFront requests (`infra/modules/cloudfront_alarm`, default threshold 50,000 requests in 5 minutes). When it fires, a Lambda disables the distribution to stop request and data transfer charges.
+
+Check, in this order:
+1. **CloudFront:** is the distribution `Disabled`? Note when it was last modified.
+2. **CloudWatch in `us-east-1`:** CloudFront metrics exist only there. Did the alarm `<project>-<env>-cloudfront-requests` go to `ALARM`? You also get an email if you confirmed the SNS subscription.
+3. **Lambda logs:** `/aws/lambda/<project>-<env>-lambda-disable-cloudfront` logs `Disabled distribution ...` when it acts.
+
+**Fix:**
+1. Find out why the alarm fired before you re-enable anything: check the CloudFront `Requests` metric and the CloudFront reports for top referrers and IPs. If the flood is still going on, the alarm will fire again.
+2. Queue a plan and apply on the environment's Terraform Cloud workspace. Terraform sees that the distribution was disabled outside Terraform and enables it again. A frontend deploy from GitHub Actions does **not** fix this. It only uploads files to S3 and clears the cache, so it succeeds while the distribution stays disabled.
+3. Re-enabling takes a few minutes to deploy. Then check the `dig` output again.
+
+You do not need to redeploy the frontend. The kill switch only disables the distribution; the files and `config.js` stay in S3, and CloudFront serves them again once it is enabled. Redeploy the frontend only if the same apply also changed values that `config.js` reads, such as the API URL or Cognito IDs.
+
+**Other cause: the record is missing** (`NXDOMAIN`, or no `A` record in Route53). The record is created by the `frontend` module, so check that the latest run on the environment's workspace applied without errors.
+
+---
+
 ## Estimated AWS cost
 
 At low personal usage (dev + prod):
