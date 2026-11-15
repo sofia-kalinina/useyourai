@@ -17,7 +17,7 @@ This guide walks through deploying your own instance of useyourai from scratch. 
 
 ### AWS Bedrock model access
 
-The app uses `eu.anthropic.claude-sonnet-4-5-20250929-v1:0` in `eu-central-1`. Bedrock model access is not enabled by default — you must request it manually:
+The app uses `eu.anthropic.claude-sonnet-4-6` in `eu-central-1`. Bedrock model access is not enabled by default — you must request it manually:
 
 1. Go to AWS Console → Bedrock → Model access (`eu-central-1`)
 2. Request access to **Claude Sonnet** under Anthropic

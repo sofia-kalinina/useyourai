@@ -63,7 +63,7 @@ dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 table = dynamodb.Table(table_name)
 
 bedrock = boto3.client(service_name='bedrock-runtime', region_name='eu-central-1')
-INFERENCE_PROFILE_ID = "eu.anthropic.claude-sonnet-4-5-20250929-v1:0"
+INFERENCE_PROFILE_ID = "eu.anthropic.claude-sonnet-4-6"
 ```
 
 **Critical:** all `boto3` clients and resources must specify `region_name='eu-central-1'` explicitly. Without it, CI fails at import time with `NoRegionError` because conftest fixtures run after module-level code is executed.

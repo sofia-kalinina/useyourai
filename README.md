@@ -31,7 +31,7 @@ Browser (React 18)
         ├─▶ POST /session/{id}/answer  → submit_answer Lambda
         └─▶ POST /session/{id}/retry   → retry_session Lambda
                       │
-                      ├─▶ AWS Bedrock (Claude Sonnet 4.5, eu-central-1)
+                      ├─▶ AWS Bedrock (Claude Sonnet 4.6, eu-central-1)
                       └─▶ DynamoDB (on-demand, TTL-based cleanup)
 ```
 
@@ -40,7 +40,7 @@ Browser (React 18)
 | Frontend | React 18, Axios, Tailwind CSS                               |
 | Auth     | AWS Cognito (sign-up/sign-in, JWT, silent token refresh)    |
 | Backend  | AWS Lambda (Python 3.14)                                    |
-| AI       | AWS Bedrock — `eu.anthropic.claude-sonnet-4-5-20250929-v1:0` |
+| AI       | AWS Bedrock — `eu.anthropic.claude-sonnet-4-6` |
 | Database | DynamoDB (on-demand billing, TTL-based session cleanup)     |
 | API      | AWS API Gateway (HTTP, Cognito JWT authorizer)              |
 | CDN      | CloudFront + S3 (security headers, HSTS, no-cache config)   |
