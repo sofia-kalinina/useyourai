@@ -58,6 +58,16 @@
   gap: 6px;
 }
 
+.pill-group--levels {
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
+}
+
+/* C1 starts a second row under B1 */
+.pill-group--levels > :nth-child(5) {
+  grid-column: 3;
+}
+
 .pill {
   padding: 3px 10px;
   border: 1.5px solid #d1d5db;

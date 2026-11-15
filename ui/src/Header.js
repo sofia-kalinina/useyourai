@@ -9,7 +9,7 @@ const Header = ({ onSignOut }) => (
         <text x="50%" y="40%" dominantBaseline="middle" textAnchor="middle" fontFamily="Arial, sans-serif" fontSize="58" fill="#282c34" fontWeight="bold">ai</text>
       </svg>
     </h1>
-    <p className="App-tagline">AI-powered language practice</p>
+    <p className="App-tagline">Grammar practice powered by Claude Sonnet 4.6</p>
     {onSignOut && (
       <button className="signout-btn" onClick={onSignOut} aria-label="Sign out">
         Sign out

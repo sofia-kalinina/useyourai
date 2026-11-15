@@ -194,7 +194,7 @@ const Chat = ({ onAuthError }) => {
               <div key={index} className="welcome-row">
                 <Message message={message} />
                 <div className="session-config">
-                  <div className="pill-group">
+                  <div className="pill-group pill-group--levels">
                     {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((l) => (
                       <button
                         key={l}
