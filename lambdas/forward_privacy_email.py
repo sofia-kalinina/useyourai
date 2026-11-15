@@ -15,8 +15,8 @@ for name, value in [('MAIL_BUCKET', bucket), ('SENDER', sender), ('FORWARD_TO', 
 # SES SendRawEmail rejects messages over 10 MB.
 MAX_FORWARD_BYTES = 10 * 1024 * 1024
 
-s3 = boto3.client('s3')
-ses = boto3.client('ses')
+s3 = boto3.client('s3', region_name='eu-central-1')
+ses = boto3.client('ses', region_name='eu-central-1')
 
 
 def build_forward(raw):
