@@ -31,3 +31,8 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "alert_email" {
+  description = "Email address that receives infrastructure alarms. Set in the Terraform Cloud workspace."
+  type        = string
+}

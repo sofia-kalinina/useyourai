@@ -118,12 +118,16 @@ Set the following Terraform variables in each workspace. Mark sensitive values a
 |----------|---------------|
 | `environment` | `dev` |
 | `domain_name` | `dev.yourdomain.com` |
+| `alert_email` | `you@example.com` (receives the CloudFront request alarm) |
 
 ### prod workspace only
 
 | Variable | Example value |
 |----------|---------------|
 | `environment` | `prod` |
+| `alert_email` | `you@example.com` (receives the CloudFront request alarm) |
+
+After the first apply, AWS emails a subscription confirmation to `alert_email`. Confirm it, or the alarm emails are not delivered. The kill switch Lambda works either way.
 
 ### AWS credentials
 

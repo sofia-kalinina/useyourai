@@ -30,6 +30,20 @@ module "frontend" {
   github_actions_role_name  = data.tfe_outputs.base_outputs.values.github_actions_role_name
 }
 
+module "cloudfront_alarm" {
+  source = "../../modules/cloudfront_alarm"
+  providers = {
+    aws = aws.us_east_1
+  }
+
+  common_tags      = local.common_tags
+  environment      = var.environment
+  project_name     = var.project_name
+  distribution_id  = module.frontend.cdn_distribution_id
+  distribution_arn = module.frontend.cdn_distribution_arn
+  alert_email      = var.alert_email
+}
+
 module "cognito" {
   source = "../../modules/cognito"
 
