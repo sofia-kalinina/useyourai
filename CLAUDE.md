@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A serverless AI-powered language learning app focused on grammar. Users request exercises via a chat interface; Claude Sonnet 4.5 (AWS Bedrock) generates exercises and feedback.
+A serverless AI-powered language learning app focused on grammar. Users request exercises via a chat interface; Claude Sonnet 4.6 (AWS Bedrock) generates exercises and feedback.
 
 - **Current iteration (v1):** authenticated users (Cognito), full exercise flow with retry — see `docs/implementation_plan.md` (loaded automatically for `lambdas/` work)
 - **Long-term vision:** user accounts, study history, per-topic statistics and success rates
@@ -20,7 +20,7 @@ A serverless AI-powered language learning app focused on grammar. Users request 
 - **Database:** AWS DynamoDB
 - **API:** AWS API Gateway (HTTP)
 - **Frontend:** React 18
-- **AI:** AWS Bedrock — `eu.anthropic.claude-sonnet-4-5-20250929-v1:0`
+- **AI:** AWS Bedrock — `eu.anthropic.claude-sonnet-4-6`
 
 Region: `eu-central-1`.
 
