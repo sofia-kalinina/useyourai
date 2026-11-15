@@ -8,7 +8,7 @@ import uuid
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 
-from generation_docs import generation_docs
+from generation_docs import EXERCISE_SET_SCHEMA, generation_docs
 
 table_name = os.getenv('TABLE_NAME')
 if not table_name:
@@ -27,15 +27,7 @@ Generate a new set of exercises specifically designed to address those mistakes.
 
 Generate exactly as many exercises as there are mistakes provided.
 
-Return ONLY valid JSON in this exact format, with no other text before or after:
-{
-  "topic": "<specific topic name>",
-  "language": "<target language>",
-  "exercises": [
-    {"id": "01", "question": "<exercise question>", "expected_answer": "<correct answer>"},
-    {"id": "02", "question": "...", "expected_answer": "..."}
-  ]
-}"""
+Set topic to the specific topic name, language to the target language, and number the exercise ids "01", "02", and so on."""
 
 MAX_MISTAKES = 20
 MAX_FIELD_LENGTH = 500
@@ -158,7 +150,8 @@ def lambda_handler(event, context):
                 "messages": [{"role": "user", "content": [{"type": "text", "text": user_message}]}],
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": 2048,
-                "temperature": 0.7
+                "temperature": 0.7,
+                "output_config": {"format": {"type": "json_schema", "schema": EXERCISE_SET_SCHEMA}}
             })
         )
     except ClientError as e:
@@ -167,17 +160,13 @@ def lambda_handler(event, context):
         return {"statusCode": 502, "body": json.dumps({"error": "Failed to call Claude"})}
 
     model_output = json.loads(bedrock_response["body"].read())
+    if model_output.get("stop_reason") == "max_tokens":
+        print(f"[retry_session] Claude reply cut off at max_tokens. Usage: {model_output.get('usage')}")
+        return {"statusCode": 502, "body": json.dumps({"error": "Claude reply was too long"})}
     raw_text = model_output["content"][0]["text"]
 
-    # Strip markdown code fences if Claude wrapped the JSON
-    stripped = raw_text.strip()
-    if stripped.startswith("```"):
-        print("[retry_session] Claude wrapped response in markdown fences — stripping")
-        stripped = stripped.split("\n", 1)[-1]
-        stripped = stripped.rsplit("```", 1)[0].strip()
-
     try:
-        exercise_data = json.loads(stripped)
+        exercise_data = json.loads(raw_text)
     except (json.JSONDecodeError, ValueError):
         print(f"[retry_session] Failed to parse Claude response as JSON. First 300 chars: {raw_text[:300]!r}")
         return {"statusCode": 502, "body": json.dumps({"error": "Claude returned invalid JSON"})}

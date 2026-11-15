@@ -5,6 +5,31 @@ LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 GUIDE = (Path(__file__).parent / "cefr_level_guide.md").read_text(encoding="utf-8")
 FORMATS = (Path(__file__).parent / "exercise_formats.md").read_text(encoding="utf-8")
 
+# Structured output schema: Bedrock guarantees the reply is valid JSON that matches it
+EXERCISE_SET_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "topic": {"type": "string"},
+        "language": {"type": "string"},
+        "exercises": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string"},
+                    "question": {"type": "string"},
+                    "expected_answer": {"type": "string"},
+                },
+                "required": ["id", "question", "expected_answer"],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["topic", "language", "exercises"],
+    "additionalProperties": False,
+}
+
 
 def _covers(levels_text, level):
     # levels_text is one level ("B1") or a range ("A2–C2")
@@ -50,6 +75,6 @@ Use only these exercise formats:
 {_formats_for(level)}
 </formats>
 
-Do the planning from the guide in your head. Do not write the plan, notes or drafts: your whole reply is the final JSON object and nothing else.
+Do the planning from the guide in your head.
 
 In expected_answer write only the correct answer and, if there are any, the accepted alternatives separated by " / ". No explanations, rule names or reasons, except the five-word reason the "Choose the nuance" format asks for."""
