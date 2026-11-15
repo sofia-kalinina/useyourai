@@ -168,9 +168,10 @@ resource "aws_iam_role_policy" "forward_privacy_email" {
         Resource = "${aws_s3_bucket.privacy_mail.arn}/${local.privacy_mail_prefix}*"
       },
       {
+        # In the SES sandbox, sending is also authorised against the recipient's identity
         Action   = "ses:SendRawEmail"
         Effect   = "Allow"
-        Resource = aws_ses_domain_identity.primary.arn
+        Resource = [aws_ses_domain_identity.primary.arn, aws_ses_email_identity.privacy_forward_to.arn]
       }
     ]
   })
