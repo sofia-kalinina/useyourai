@@ -13,3 +13,8 @@ output "ui_bucket_name" {
   value       = aws_s3_bucket.frontend_bucket.bucket
 }
 
+
+output "cdn_distribution_arn" {
+  description = "CDN distribution ARN"
+  value       = aws_cloudfront_distribution.frontend_cdn.arn
+}
